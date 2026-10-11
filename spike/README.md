@@ -19,6 +19,14 @@
 
 ## Сборка и запуск (только Windows)
 
+Быстрая проверка и починка окружения одной командой:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File spike\setup-windows.ps1
+```
+
+Вручную:
+
 ```powershell
 # 1. тулчейн (если нет): rustup → stable-x86_64-pc-windows-msvc
 rustup default stable
@@ -26,6 +34,38 @@ rustup default stable
 # 2. сборка
 cd spike
 cargo build --release
+```
+
+### Troubleshooting: `error: linker `link.exe` not found`
+
+Это НЕ ошибка кода спайка. Target `*-pc-windows-msvc` линкуется линкером из Visual Studio C++,
+которого нет в «голом» Rust (VS Code линкер не даёт). Два пути:
+
+**Путь 1 (рекомендуется): поставить MSVC Build Tools.** Нужен и позже — с M1 Tauri/WebView2
+без MSVC не собираются вовсе, так что ставим сразу:
+
+```powershell
+winget install Microsoft.VisualStudio.2022.BuildTools --exact --silent --accept-package-agreements --accept-source-agreements --override "--quiet --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended"
+# закрыть терминал, открыть новый
+cargo build --release
+```
+
+Занимает ~2–4 ГБ и несколько минут; после установки обычный терминал подходит
+(rustc сам находит link.exe через vswhere).
+
+**Путь 2 (без MSVC): GNU-тулчейн Rust + MinGW-w64.** Только для спайка:
+
+```powershell
+rustup toolchain install stable-x86_64-pc-windows-gnu
+rustup default stable-x86_64-pc-windows-gnu
+winget install MSYS2.MSYS2
+C:\msys64\usr\bin\pacman.exe -S --noconfirm mingw-w64-x86_64-gcc
+# добавить C:\msys64\mingw64\bin в PATH (или пользоваться "MSYS2 MinGW 64-bit" терминалом)
+cargo build --release
+```
+
+Если после установки Build Tools ошибка осталась — проверь, что стоишь в том же каталоге
+(`spike/`) и что cargo не закешил неудачную сборку: `cargo clean; cargo build --release`.
 
 # 3. запуск поверх игры
 ..\target\release\overlay-win.exe ..\presets\examples\classic-cross.ovcross.json
