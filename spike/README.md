@@ -85,15 +85,22 @@ cargo build --release
 (`spike/`) и что cargo не закешил неудачную сборку: `cargo clean; cargo build --release`.
 
 # 3. запуск поверх игры
-..\target\release\overlay-win.exe ..\presets\examples\classic-cross.ovcross.json
-..\target\release\overlay-win.exe ..\presets\examples\neon-pulse-ring.ovcross.json --cursor
-..\target\release\overlay-win.exe ..\presets\examples\classic-cross.ovcross.json --cursor-blank
+.\target\release\overlay-win.exe ..\presets\examples\classic-cross.ovcross.json
+.\target\release\overlay-win.exe ..\presets\examples\neon-pulse-ring.ovcross.json --cursor
+.\target\release\overlay-win.exe ..\presets\examples\classic-cross.ovcross.json --cursor-blank
 ```
 
 Хоткеи во время работы: **F7** показать/скрыть (паника, плавно), **F8**/**F12** выход,
 **F9** переключить центр/курсор. Появление и уход прицела — плавные (fade 160 мс, smoothstep).
 При старте спайк печатает статус каждого хоткея: если комбинация занята другой программой,
-будет строка `! хоткей F8 выход НЕ зарегистрирован…` — тогда пользуйся запасным F12.
+будет строка `! хоткей F8 выход НЕ зарегистрирован…`. Запасной выход выбирается из цепочки
+**F12 → F10 → Pause/Break → Ctrl+Alt+Q** (первая свободная комбинация); какая досталась тебе —
+видно в строке `[spike] хоткеи: F7 показать/скрыть · F8/<твоя> выход · F9 центр/курсор`.
+Если заняты все — закрой окно консоли (процесс завершится, курсор восстановится командой
+`--restore-cursor`).
+
+> Важно: команды запуска пиши из папки `spike` как `.\target\release\overlay-win.exe …`
+> (одна точка). `..\target\…` — это путь на уровень выше, PowerShell его не найдёт.
 При выходе в cursor-режиме печатается p50/p95 задержки «опрос мыши → UpdateLayeredWindow».
 
 ### Как прогнать режим «за курсором» (`--cursor`)
@@ -101,7 +108,7 @@ cargo build --release
 `--cursor` — это **флаг запуска**, а не кнопка: выйди (F8/F12) и запусти заново с флагом:
 
 ```powershell
-..\target\release\overlay-win.exe ..\presets\examples\classic-cross.ovcross.json --cursor
+.\target\release\overlay-win.exe ..\presets\examples\classic-cross.ovcross.json --cursor
 ```
 
 Либо переключай на лету клавишей **F9** (центр ↔ курсор) в уже запущенном спайке.
@@ -109,7 +116,7 @@ cargo build --release
 ### Полное замещение мыши: курсора нет, жив только прицел
 
 ```powershell
-..\target\release\overlay-win.exe ..\presets\examples\classic-cross.ovcross.json --cursor --cursor-blank
+.\target\release\overlay-win.exe ..\presets\examples\classic-cross.ovcross.json --cursor --cursor-blank
 ```
 
 `--cursor-blank` подменяет системные курсоры на пустые (и восстанавливает их при выходе

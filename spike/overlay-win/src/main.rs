@@ -205,7 +205,12 @@ mod win {
     const VK_F7: u32 = 0x76;
     const VK_F8: u32 = 0x77;
     const VK_F9: u32 = 0x78;
+    const VK_F10: u32 = 0x79;
     const VK_F12: u32 = 0x7B;
+    const VK_PAUSE: u32 = 0x13;
+    const VK_Q: u32 = 0x51;
+    const MOD_ALT: u32 = 0x0001;
+    const MOD_CONTROL: u32 = 0x0002;
     const SW_SHOWNOACTIVATE: i32 = 4;
     const FADE_US: i64 = 160_000; // плавность появления/ухода, мкс
     const SPI_SETCURSORS: u32 = 0x0057;
@@ -312,9 +317,17 @@ mod win {
         println!("[spike] оверлей: {}", if want { "появление (fade-in)" } else { "уход (fade-out)" });
     }
 
+    static mut QUITTING: bool = false;
+
     /// Гарантированный выход: печатаем сводку, освобождаем Win32, завершаем процесс.
+    /// Защита от рекурсии обязательна: DestroyWindow синхронно шлёт WM_DESTROY,
+    /// а тот снова зовёт do_quit — без флага сводка печаталась десятки раз.
     /// process::exit — сознательно для спайка: никаких «залипших» окон после F8/F12.
     fn do_quit() -> ! {
+        if unsafe { QUITTING } {
+            std::process::exit(0); // повторный вход (WM_DESTROY от нашего же DestroyWindow)
+        }
+        unsafe { QUITTING = true };
         let st = state();
         if !st.samples.is_empty() {
             let mut v = st.samples.clone();
@@ -399,7 +412,13 @@ mod win {
                 0
             }
             WM_DESTROY => {
-                do_quit();
+                // do_quit() сам вызывает DestroyWindow → WM_DESTROY; чтобы не уйти
+                // в рекурсию, здесь только просим завершить цикл сообщений.
+                if !(unsafe { QUITTING }) {
+                    do_quit();
+                } else {
+                    unsafe { PostQuitMessage(0) };
+                }
             }
             _ => unsafe { DefWindowProcW(hwnd, msg, wp, lp) },
         }
@@ -608,17 +627,36 @@ mod win {
             state().cursor_blank = blank_the_cursor();
         }
 
-        for (id, vk, name) in [
-            (1i32, VK_F7, "F7 показать/скрыть"),
-            (2i32, VK_F8, "F8 выход"),
-            (3i32, VK_F9, "F9 центр/курсор"),
-            (4i32, VK_F12, "F12 выход (запасной)"),
+        for (id, mods, vk, name) in [
+            (1i32, MOD_NOREPEAT, VK_F7, "F7 показать/скрыть"),
+            (2i32, MOD_NOREPEAT, VK_F8, "F8 выход"),
+            (3i32, MOD_NOREPEAT, VK_F9, "F9 центр/курсор"),
         ] {
-            if unsafe { RegisterHotKey(hwnd, id, MOD_NOREPEAT, vk) } == 0 {
+            if unsafe { RegisterHotKey(hwnd, id, mods, vk) } == 0 {
                 eprintln!("  ! хоткей {name} НЕ зарегистрирован: комбинация занята другой программой");
             }
         }
-        println!("[spike] хоткеи: F7 показать/скрыть · F8/F12 выход · F9 центр/курсор");
+
+        // Запасной выход: F12 часто занят (драйверы клавиатуры, GeForce Experience,
+        // оверлеи). Пробуем цепочку и берём первую свободную комбинацию.
+        let mut spare = String::from("нет");
+        for (mods, vk, name) in [
+            (MOD_NOREPEAT, VK_F12, "F12"),
+            (MOD_NOREPEAT, VK_F10, "F10"),
+            (MOD_NOREPEAT, VK_PAUSE, "Pause/Break"),
+            (MOD_NOREPEAT | MOD_CONTROL | MOD_ALT, VK_Q, "Ctrl+Alt+Q"),
+        ] {
+            if unsafe { RegisterHotKey(hwnd, 4, mods, vk) } != 0 {
+                spare = name.to_string();
+                break;
+            }
+        }
+        if spare == "нет" {
+            eprintln!("  ! ни один запасной хоткей выхода не зарегистрирован — закрывай окно консоли");
+        }
+        println!(
+            "[spike] хоткеи: F7 показать/скрыть · F8/{spare} выход · F9 центр/курсор"
+        );
 
         unsafe { SetTimer(hwnd, 1, 1, None) };
         let (x, y) = target_pos(state());
