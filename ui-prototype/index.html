@@ -419,4 +419,45 @@ renderCats(); renderGrid(); renderProfiles(); editorSync();
 window.addEventListener("resize",editorSync);
 </script>
 </body>
+
+<script>
+/* Мост хаба (M1-2): если UI открыт внутри Tauri (window.__TAURI__), правки уходят
+   в ядро оверлея через IPC-команды set_preset/set_mode/quit_core — тот же канал,
+   что именованный пайп overley-ctl. В браузерном превью мост молча отключён. */
+(function(){
+  const T = window.__TAURI__ && window.__TAURI__.core;
+  if (!T) return;
+  document.title = "Overley";
+  const chips = document.querySelectorAll("#top .chip");
+  if (chips.length) chips[chips.length-1].innerHTML = "хаб: <b>live-синхронизация включена</b>";
+  const apply = dsl => T.invoke("set_preset", { dsl }).then(()=>toast("Применено к открытому прицелу")).catch(e=>toast("ядро: "+e));
+  let tm = 0;
+  const applySoon = dsl => { clearTimeout(tm); tm = setTimeout(()=>apply(dsl), 120); };
+
+  // редактор: каждое движение ползунка → ядро (с дебаунсом)
+  document.querySelectorAll("#v-editor input, #v-editor select").forEach(el=>
+    el.addEventListener("input", ()=>applySoon(editorDsl())));
+
+  // панель пресета в галерее: кнопка «Применить к прицелу»
+  const dApply = document.createElement("button");
+  dApply.className = "btn pri"; dApply.textContent = "Применить к прицелу";
+  dApply.onclick = () => apply(JSON.parse($("#dJson").textContent));
+  $("#dCopy").parentNode.insertBefore(dApply, $("#dCopy"));
+
+  // результат ИИ-импорта: сразу применить
+  const aiApply = document.createElement("button");
+  aiApply.className = "btn pri"; aiApply.textContent = "Применить к прицелу"; aiApply.disabled = true;
+  $("#aiDl").parentNode.insertBefore(aiApply, $("#aiDl"));
+  new MutationObserver(()=>{ aiApply.disabled = !$("#aiJson").textContent.trim(); })
+    .observe($("#aiJson"), {childList:true, characterData:true, subtree:true});
+  aiApply.onclick = () => apply(JSON.parse($("#aiJson").textContent));
+
+  // режим center/cursor из редактора
+  const modeRow = document.createElement("div");
+  modeRow.className = "row";
+  modeRow.innerHTML = '<button class="btn gho" data-m="center">Режим: центр</button><button class="btn gho" data-m="cursor">Режим: курсор</button>';
+  modeRow.querySelectorAll("button").forEach(b=>b.onclick=()=>T.invoke("set_mode",{mode:b.dataset.m}).catch(e=>toast("ядро: "+e)));
+  $("#v-editor .panel").appendChild(modeRow);
+})();
+</script>
 </html>
