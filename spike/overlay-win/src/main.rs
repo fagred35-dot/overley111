@@ -435,17 +435,31 @@ mod win {
     }
 
     fn blank_the_cursor() -> bool {
-        let planes = [0u8; 32 * 32 / 8];
-        let cur = unsafe { CreateCursor(0, 0, 0, 32, 32, planes.as_ptr(), planes.as_ptr()) };
-        if cur == 0 {
-            eprintln!("  ! CreateCursor не удался — курсор не трогаем");
-            return false;
-        }
+        // AND-маска вся из единиц + XOR-маска нулевая = полностью прозрачный курсор.
+        // (Нулевая AND-маска, как было раньше, даёт НЕпрозрачный чёрный квадрат 32×32.)
+        let mk = || {
+            let and = [0xFFu8; 32 * 32 / 8];
+            let xor = [0u8; 32 * 32 / 8];
+            unsafe { CreateCursor(0, 0, 0, 32, 32, and.as_ptr(), xor.as_ptr()) }
+        };
+        // SetSystemCursor забирает владение переданным HCURSOR, поэтому каждому
+        // системному id — свой свежий курсор, иначе use-after-free.
+        let mut ok = false;
         for id in [
             OCR_NORMAL, OCR_IBEAM, OCR_CROSS, OCR_SIZEALL, OCR_SIZENWSE, OCR_SIZENESW,
             OCR_SIZEWE, OCR_SIZENS, OCR_NO, OCR_HAND, OCR_APPSTARTING,
         ] {
-            unsafe { SetSystemCursor(cur, id) };
+            let cur = mk();
+            if cur == 0 {
+                eprintln!("  ! CreateCursor не удался — курсор не трогаем");
+                return false;
+            }
+            if unsafe { SetSystemCursor(cur, id) } != 0 {
+                ok = true;
+            }
+        }
+        if !ok {
+            return false;
         }
         std::fs::write(lock_path(), format!("{}\n", unsafe { GetCurrentProcessId() })).ok();
         println!("[spike] системный курсор подменён на пустой (lock-файл создан)");
