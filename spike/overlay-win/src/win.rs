@@ -21,7 +21,7 @@ pub struct Config {
 }
 
 /// Встроенный классический крест — fallback, если пресет не задан/не загрузился (хаб).
-pub const DEFAULT_DSL: &str = r#"{"format":"overley.crosshair","version":1,"canvas":{"size":[128,128]},"style":{"outline":{"color":"#000000CC","width":1.25,"enabled":true}},"layers":[{"id":"n","type":"rect","size":[2,8],"pos":[0,-12],"fill":"#00FF66"},{"id":"s","type":"rect","size":[2,8],"pos":[0,12],"fill":"#00FF66"},{"id":"w","type":"rect","size":[8,2],"pos":[-12,0],"fill":"#00FF66"},{"id":"e","type":"rect","size":[8,2],"pos":[12,0],"fill":"#00FF66"},{"id":"dot","type":"circle","r":1,"fill":"#00FF66"}],"behavior":{"mode":"center"}}"#;
+pub const DEFAULT_DSL: &str = r##"{"format":"overley.crosshair","version":1,"canvas":{"size":[128,128]},"style":{"outline":{"color":"#000000CC","width":1.25,"enabled":true}},"layers":[{"id":"n","type":"rect","size":[2,8],"pos":[0,-12],"fill":"#00FF66"},{"id":"s","type":"rect","size":[2,8],"pos":[0,12],"fill":"#00FF66"},{"id":"w","type":"rect","size":[8,2],"pos":[-12,0],"fill":"#00FF66"},{"id":"e","type":"rect","size":[8,2],"pos":[12,0],"fill":"#00FF66"},{"id":"dot","type":"circle","r":1,"fill":"#00FF66"}],"behavior":{"mode":"center"}}"##;
 
 // --------------------------------------------------------------- FFI (только спайк)
 // FIXME-spike: сигнатуры выписаны вручную под x64 Windows. Если линкер ругнётся —
