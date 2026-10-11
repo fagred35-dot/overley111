@@ -67,42 +67,7 @@
   .btn:hover{border-color:#3a4a68}
   .btn.pri{background:var(--acc);border-color:var(--acc);color:#04110a;font-weight:600}
   .btn.gho{background:transparent}
-  /* ---------- загрузка любого DSL в параметрический редактор ---------- */
-function loadDslIntoEditor(d){
-  const L=d.layers||[];
-  const rects=L.filter(l=>l.type==="rect"), rings=L.filter(l=>l.type==="ring"),
-        circles=L.filter(l=>l.type==="circle"), lines=L.filter(l=>l.type==="line");
-  const hasCross = rects.length>=4 || lines.length>=4;
-  if(!L.length || !(hasCross||rings.length||circles.length)){
-    toast("Пресет из слоёв poly/path/text/line<4 параметрически не открывается — примени его кнопкой «Применить к прицелу»");
-    return false;
-  }
-  const col=(L.find(l=>l.fill)||{}).fill||"#00ff66";
-  $("#eColor").value=col.slice(0,7);
-  let th=2,len=8,gap=4,R=10,dot=1;
-  if(rects.length){ const r0=rects[0]; th=Math.min(r0.size[0],r0.size[1]); len=Math.max(r0.size[0],r0.size[1]);
-    const north=rects.find(r=>r.pos&&r.pos[1]<0)||rects[0];
-    if(north.pos) gap=Math.abs(north.pos[1])-len/2; }
-  else if(lines.length>=4){ const v=lines.find(l=>l.from&&l.to&&l.from[0]===l.to[0])||lines[0];
-    th=v.thickness||th;
-    len=Math.abs(v.to[1]-v.from[1])||Math.abs(v.to[0]-v.from[0])||len;
-    gap=Math.abs(v.from[1]||v.from[0]||0); }
-  if(rings.length){ th=rings[0].thickness||th; R=rings[0].r||R; }
-  if(circles.length){ dot=circles[0].r||dot; }
-  $("#eType").value = rings.length&&circles.length ? "ringdot" : rings.length ? "ring"
-                    : hasCross&&circles.length ? "crossdot" : hasCross ? "cross" : "dot";
-  $("#eTh").value=cl(th,1,5); $("#eLen").value=cl(len,3,18); $("#eGap").value=cl(gap,0,12);
-  $("#eR").value=cl(R,3,24); $("#eDot").value=cl(dot,0.5,4);
-  const ol=d.style&&d.style.outline;
-  $("#eOl").value = ol&&ol.enabled!==false ? cl(ol.width||1.25,0,3) : 0;
-  if(ol&&ol.color) $("#eOlC").value=ol.color.slice(0,7);
-  editorSync();
-  if(window.__OVERLEY_APPLY) window.__OVERLEY_APPLY(editorDsl());
-  toast("Пресет загружен в редактор");
-  return true;
-}
-
-/* ---------- редактор ---------- */
+  /* ---------- редактор ---------- */
   .cols{display:grid;grid-template-columns:340px 1fr;gap:16px}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
   .fld{margin-bottom:12px}
@@ -367,6 +332,41 @@ function drawDsl(ctx,dsl,S,cx,cy){
   };
   if(ol && ol.enabled!==false) pass(true);
   pass(false);
+}
+
+/* ---------- загрузка любого DSL в параметрический редактор ---------- */
+function loadDslIntoEditor(d){
+  const L=d.layers||[];
+  const rects=L.filter(l=>l.type==="rect"), rings=L.filter(l=>l.type==="ring"),
+        circles=L.filter(l=>l.type==="circle"), lines=L.filter(l=>l.type==="line");
+  const hasCross = rects.length>=4 || lines.length>=4;
+  if(!L.length || !(hasCross||rings.length||circles.length)){
+    toast("Пресет из слоёв poly/path/text/line<4 параметрически не открывается — примени его кнопкой «Применить к прицелу»");
+    return false;
+  }
+  const col=(L.find(l=>l.fill)||{}).fill||"#00ff66";
+  $("#eColor").value=col.slice(0,7);
+  let th=2,len=8,gap=4,R=10,dot=1;
+  if(rects.length){ const r0=rects[0]; th=Math.min(r0.size[0],r0.size[1]); len=Math.max(r0.size[0],r0.size[1]);
+    const north=rects.find(r=>r.pos&&r.pos[1]<0)||rects[0];
+    if(north.pos) gap=Math.abs(north.pos[1])-len/2; }
+  else if(lines.length>=4){ const v=lines.find(l=>l.from&&l.to&&l.from[0]===l.to[0])||lines[0];
+    th=v.thickness||th;
+    len=Math.abs(v.to[1]-v.from[1])||Math.abs(v.to[0]-v.from[0])||len;
+    gap=Math.abs(v.from[1]||v.from[0]||0); }
+  if(rings.length){ th=rings[0].thickness||th; R=rings[0].r||R; }
+  if(circles.length){ dot=circles[0].r||dot; }
+  $("#eType").value = rings.length&&circles.length ? "ringdot" : rings.length ? "ring"
+                    : hasCross&&circles.length ? "crossdot" : hasCross ? "cross" : "dot";
+  $("#eTh").value=cl(th,1,5); $("#eLen").value=cl(len,3,18); $("#eGap").value=cl(gap,0,12);
+  $("#eR").value=cl(R,3,24); $("#eDot").value=cl(dot,0.5,4);
+  const ol=d.style&&d.style.outline;
+  $("#eOl").value = ol&&ol.enabled!==false ? cl(ol.width||1.25,0,3) : 0;
+  if(ol&&ol.color) $("#eOlC").value=ol.color.slice(0,7);
+  editorSync();
+  if(window.__OVERLEY_APPLY) window.__OVERLEY_APPLY(editorDsl());
+  toast("Пресет загружен в редактор");
+  return true;
 }
 
 /* ---------- редактор ---------- */
