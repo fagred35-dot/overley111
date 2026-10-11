@@ -419,6 +419,7 @@ mod win {
                 } else {
                     unsafe { PostQuitMessage(0) };
                 }
+                0
             }
             _ => unsafe { DefWindowProcW(hwnd, msg, wp, lp) },
         }
