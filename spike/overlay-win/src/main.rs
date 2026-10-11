@@ -240,6 +240,7 @@ mod win {
 
     // FIXME-spike: глобальный мутабельный указатель допустим только в спайке.
     // В M1 состояние живёт в структуре ядра и передаётся через GWLP_USERDATA или Arc.
+    static mut STATE: *mut State = std::ptr::null_mut();
 
     fn state() -> &'static mut State {
         unsafe { &mut *STATE }
@@ -521,7 +522,7 @@ mod win {
             qpc_freq: freq.max(1) as f64,
             fg_rect: Rect::default(),
         }));
-        unsafe { STATE = st as *mut State };;
+        unsafe { STATE = st as *mut State };
 
         if cursor_blank {
             state().cursor_blank = blank_the_cursor();
