@@ -1,0 +1,422 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Overley — прототип хаба (M4-превью)</title>
+<style>
+  :root{
+    --bg:#0b0e13; --bg2:#11151d; --panel:#161b25; --panel2:#1c2230; --line:#242c3b;
+    --txt:#e8ecf4; --mut:#8b94a7; --acc:#00ff88; --acc2:#37b6ff; --warn:#ffb020; --err:#ff5470;
+    --r:14px;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.5 "Segoe UI",system-ui,-apple-system,Roboto,sans-serif;display:flex;overflow:hidden}
+  button{font:inherit;cursor:pointer}
+  /* ---------- сайдбар ---------- */
+  #side{width:230px;flex:0 0 230px;background:var(--bg2);border-right:1px solid var(--line);display:flex;flex-direction:column;padding:16px 12px;gap:4px}
+  #logo{display:flex;align-items:center;gap:10px;padding:4px 8px 14px}
+  #logo .mark{width:30px;height:30px;border-radius:9px;background:linear-gradient(135deg,#00ff8855,#37b6ff33);border:1px solid #00ff8855;display:grid;place-items:center;font-weight:700;color:var(--acc)}
+  #logo b{font-size:16px;letter-spacing:.4px}
+  #logo span{color:var(--mut);font-size:11px;display:block;margin-top:-2px}
+  .nav{display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:10px;color:var(--mut);border:1px solid transparent;user-select:none}
+  .nav:hover{background:var(--panel);color:var(--txt)}
+  .nav.on{background:var(--panel2);color:var(--txt);border-color:var(--line)}
+  .nav.on .ico{color:var(--acc)}
+  .ico{width:18px;text-align:center}
+  #side .foot{margin-top:auto;font-size:11px;color:var(--mut);padding:10px 8px;border-top:1px solid var(--line)}
+  #side .foot b{color:var(--acc)}
+  /* ---------- основная область ---------- */
+  #main{flex:1;display:flex;flex-direction:column;min-width:0}
+  #top{height:54px;flex:0 0 54px;display:flex;align-items:center;gap:10px;padding:0 18px;border-bottom:1px solid var(--line);background:var(--bg2)}
+  #top h1{font-size:15px;margin:0;font-weight:600}
+  .chip{font-size:11px;color:var(--mut);background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+  .chip b{color:var(--acc)}
+  #top .sp{flex:1}
+  #view{flex:1;overflow:auto;padding:18px;position:relative}
+  .view{display:none}
+  .view.on{display:block}
+  h2.sec{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--mut);margin:0 0 12px}
+  /* ---------- галерея ---------- */
+  #cats{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .cat{border:1px solid var(--line);background:var(--panel);color:var(--mut);border-radius:999px;padding:6px 14px}
+  .cat.on{color:#04110a;background:var(--acc);border-color:var(--acc);font-weight:600}
+  #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;cursor:pointer;transition:transform .12s,border-color .12s}
+  .card:hover{transform:translateY(-2px);border-color:#33405a}
+  .card.sel{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc)}
+  .card .ph{height:110px;display:grid;place-items:center;background:
+      linear-gradient(45deg,#171c26 25%,transparent 25%,transparent 75%,#171c26 75%),
+      linear-gradient(45deg,#171c26 25%,#12161e 25%,#12161e 75%,#171c26 75%);
+      background-size:16px 16px;background-position:0 0,8px 8px}
+  .card .ph img{width:96px;height:96px;image-rendering:pixelated}
+  .card .nm{padding:8px 10px;font-size:12.5px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+  .card .nm i{font-style:normal;color:var(--mut);font-size:10.5px;white-space:nowrap}
+  /* ---------- drawer ---------- */
+  #drawer{position:fixed;top:54px;right:0;bottom:0;width:400px;background:var(--bg2);border-left:1px solid var(--line);transform:translateX(102%);transition:transform .18s;padding:16px;overflow:auto;z-index:30}
+  #drawer.on{transform:none}
+  #drawer .ph{height:220px;display:grid;place-items:center;border:1px solid var(--line);border-radius:var(--r);background:
+      linear-gradient(45deg,#171c26 25%,transparent 25%,transparent 75%,#171c26 75%),
+      linear-gradient(45deg,#171c26 25%,#12161e 25%,#12161e 75%,#171c26 75%);
+      background-size:18px 18px;background-position:0 0,9px 9px;margin-bottom:12px}
+  #drawer .ph img{width:180px;height:180px;image-rendering:pixelated}
+  pre.code{background:#0d1117;border:1px solid var(--line);border-radius:10px;padding:10px;font:11.5px/1.45 Consolas,monospace;overflow:auto;max-height:240px;color:#c9d4e3}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+  .btn{background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:8px 14px}
+  .btn:hover{border-color:#3a4a68}
+  .btn.pri{background:var(--acc);border-color:var(--acc);color:#04110a;font-weight:600}
+  .btn.gho{background:transparent}
+  /* ---------- редактор ---------- */
+  .cols{display:grid;grid-template-columns:340px 1fr;gap:16px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+  .fld{margin-bottom:12px}
+  .fld label{display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-bottom:5px}
+  .fld label b{color:var(--txt);font-weight:500}
+  input[type=range]{width:100%;accent-color:var(--acc)}
+  input[type=color]{width:44px;height:28px;border:1px solid var(--line);border-radius:8px;background:var(--panel2);padding:2px}
+  select,input[type=text],textarea{width:100%;background:var(--panel2);border:1px solid var(--line);color:var(--txt);border-radius:10px;padding:8px 10px;font:inherit}
+  textarea{font:12px/1.5 Consolas,monospace;resize:vertical}
+  #stage{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;position:relative;height:430px;background:radial-gradient(120% 90% at 50% 30%,#233047 0%,#131a26 55%,#0c1017 100%)}
+  #stage canvas{position:absolute;inset:0;width:100%;height:100%}
+  #stage .hud{position:absolute;left:14px;bottom:12px;color:#9fb4d8;font-size:11px;letter-spacing:.5px;opacity:.75}
+  #stage .hud b{color:#cfe3ff}
+  /* ---------- ai импорт ---------- */
+  .steps{display:grid;grid-template-columns:1fr;gap:14px;max-width:900px}
+  .step{display:flex;gap:14px}
+  .step .n{flex:0 0 34px;height:34px;border-radius:50%;background:var(--panel2);border:1px solid var(--line);display:grid;place-items:center;font-weight:700;color:var(--acc)}
+  .step .bd{flex:1;min-width:0}
+  .ok{color:var(--acc)} .bad{color:var(--err)} .warnc{color:var(--warn)}
+  #aiRes{margin-top:10px}
+  /* ---------- профили / настройки ---------- */
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line)}
+  th{color:var(--mut);font-weight:500;font-size:11.5px;text-transform:uppercase;letter-spacing:.6px}
+  .tg{position:relative;width:40px;height:22px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;transition:.15s}
+  .tg::after{content:"";position:absolute;top:2px;left:2px;width:16px;height:16px;border-radius:50%;background:var(--mut);transition:.15s}
+  .tg.on{background:#0d3a26;border-color:var(--acc)}
+  .tg.on::after{left:20px;background:var(--acc)}
+  .setrow{display:flex;align-items:center;gap:12px;padding:11px 4px;border-bottom:1px solid var(--line)}
+  .setrow .t{flex:1}
+  .setrow .t b{display:block;font-weight:500}
+  .setrow .t span{color:var(--mut);font-size:12px}
+  .kbd{background:var(--panel2);border:1px solid var(--line);border-bottom-width:2px;border-radius:7px;padding:3px 9px;font:12px Consolas,monospace}
+  #toast{position:fixed;bottom:22px;left:50%;transform:translate(-50%,80px);background:var(--panel2);border:1px solid var(--acc);color:var(--txt);border-radius:12px;padding:10px 18px;transition:transform .2s;z-index:99}
+  #toast.on{transform:translate(-50%,0)}
+  .note{border:1px solid var(--line);border-left:3px solid var(--acc2);background:var(--panel);border-radius:10px;padding:10px 12px;color:var(--mut);font-size:12.5px;margin:12px 0}
+  .note b{color:var(--txt)}
+</style>
+</head>
+<body>
+<aside id="side">
+  <div id="logo"><div class="mark">◎</div><div><b>Overley</b><span>кроссхейр-оверлей · прототип хаба</span></div></div>
+  <div class="nav on" data-v="gallery"><span class="ico">▦</span>Галерея прицелов</div>
+  <div class="nav" data-v="editor"><span class="ico">✎</span>Редактор пресета</div>
+  <div class="nav" data-v="ai"><span class="ico">✦</span>ИИ-импорт</div>
+  <div class="nav" data-v="profiles"><span class="ico">⌗</span>Профили приложений</div>
+  <div class="nav" data-v="settings"><span class="ico">⚙</span>Настройки</div>
+  <div class="foot">ядро: <b>M0 spike</b> · p95 0,39 мс<br>инъекций нет · open source · бесплатно</div>
+</aside>
+
+<div id="main">
+  <header id="top">
+    <h1 id="vTitle">Галерея прицелов</h1>
+    <span class="chip">пресетов: <b id="cCount">0</b></span>
+    <span class="chip">схема: <b>overley.crosshair v1</b></span>
+    <div class="sp"></div>
+    <span class="chip">прототип интерфейса — не финальный билд</span>
+  </header>
+
+  <div id="view">
+    <!-- ================= ГАЛЕРЕЯ ================= -->
+    <section class="view on" id="v-gallery">
+      <div id="cats"></div>
+      <div id="grid"></div>
+      <div class="note"><b>Как это работает в продукте:</b> карточка → «Инструкция для ИИ» (скопировать промпт → вставить ответ любого ИИ → пресет готов) и «Применить к приложению…». Галерея ниже — живые данные репозитория: 31 пресет + превью из <code>assets/previews/gallery</code>.</div>
+    </section>
+
+    <!-- ================= РЕДАКТОР ================= -->
+    <section class="view" id="v-editor">
+      <div class="cols">
+        <div class="panel">
+          <h2 class="sec">Параметры</h2>
+          <div class="fld"><label>Тип прицела</label>
+            <select id="eType">
+              <option value="cross">Крест с зазором</option>
+              <option value="crossdot">Крест + точка</option>
+              <option value="ringdot">Кольцо + точка</option>
+              <option value="ring">Кольцо</option>
+              <option value="dot">Точка</option>
+            </select></div>
+          <div class="fld"><label>Цвет <input type="color" id="eColor" value="#00ff66"></label></div>
+          <div class="fld"><label>Толщина линий <b id="vTh">2.0</b></label><input type="range" id="eTh" min="1" max="5" step="0.25" value="2"></div>
+          <div class="fld"><label>Длина луча <b id="vLen">8</b></label><input type="range" id="eLen" min="3" max="18" step="1" value="8"></div>
+          <div class="fld"><label>Зазор <b id="vGap">4</b></label><input type="range" id="eGap" min="0" max="12" step="0.5" value="4"></div>
+          <div class="fld"><label>Радиус кольца <b id="vR">10</b></label><input type="range" id="eR" min="3" max="24" step="0.5" value="10"></div>
+          <div class="fld"><label>Точка: радиус <b id="vDot">1</b></label><input type="range" id="eDot" min="0.5" max="4" step="0.25" value="1"></div>
+          <div class="fld"><label>Контур: толщина <b id="vOl">1.25</b></label><input type="range" id="eOl" min="0" max="3" step="0.25" value="1.25"></div>
+          <div class="fld"><label>Цвет контура <input type="color" id="eOlC" value="#000000"></label></div>
+          <div class="row">
+            <button class="btn pri" id="eCopy">Копировать JSON</button>
+            <button class="btn" id="eDl">Скачать .ovcross.json</button>
+          </div>
+        </div>
+        <div>
+          <div id="stage"><canvas id="cv"></canvas><div class="hud">имитация игрового фона · <b>zoom ×6</b> · pixelSnap</div></div>
+          <pre class="code" id="eJson"></pre>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================= ИИ-ИМПОРТ ================= -->
+    <section class="view" id="v-ai">
+      <div class="steps">
+        <div class="step"><div class="n">1</div><div class="bd panel">
+          <h2 class="sec">Скопируй инструкцию для ИИ</h2>
+          <p style="color:var(--mut);margin:4px 0 8px">Промпт просит у любой модели (ChatGPT, Gemini, Claude, DeepSeek…) JSON нашей схемы. Вставь его в чат как есть.</p>
+          <div class="row"><button class="btn pri" id="aiCopy">Скопировать промпт (RU)</button><button class="btn gho" id="aiMini">Мини-промпт</button></div>
+          <textarea id="aiPrompt" rows="7" spellcheck="false"></textarea>
+        </div></div>
+        <div class="step"><div class="n">2</div><div class="bd panel">
+          <h2 class="sec">Вставь ответ ИИ сюда</h2>
+          <textarea id="aiIn" rows="9" spellcheck="false" placeholder='{ "format": "overley.crosshair", "version": 1, "layers": [ … ] }'></textarea>
+          <div class="row"><button class="btn pri" id="aiGo">Нормализовать и проверить</button><button class="btn gho" id="aiClear">Очистить</button></div>
+          <div id="aiRes"></div>
+        </div></div>
+        <div class="step"><div class="n">3</div><div class="bd panel">
+          <h2 class="sec">Результат</h2>
+          <div style="display:flex;gap:14px;align-items:flex-start">
+            <canvas id="aiCv" width="220" height="220" style="background:#12161e;border:1px solid var(--line);border-radius:12px"></canvas>
+            <div style="flex:1;min-width:0">
+              <pre class="code" id="aiJson" style="max-height:200px"></pre>
+              <div class="row"><button class="btn" id="aiDl" disabled>Сохранить как пресет</button><button class="btn gho" id="aiToEd" disabled>Открыть в редакторе</button></div>
+            </div>
+          </div>
+          <div class="note">Если импорт отказал — хаб собирает follow-up промпт «исправь ошибки» автоматически и подставляет текст ошибки модели. В прототипе нормализатор повторяет <code>tools/normalize_ai_answer.py</code>: снимает ```json-ограждения, убирает висячие запятые, проверяет схему.</div>
+        </div></div>
+      </div>
+    </section>
+
+    <!-- ================= ПРОФИЛИ ================= -->
+    <section class="view" id="v-profiles">
+      <div class="panel" style="max-width:860px">
+        <h2 class="sec">Пресет на приложение</h2>
+        <table id="pTab"><thead><tr><th>Приложение</th><th>Пресет</th><th>Режим</th><th></th></tr></thead><tbody></tbody></table>
+        <div class="row" style="margin-top:14px">
+          <input type="text" id="pExe" placeholder="имя процесса, например apex_legends.exe" style="max-width:300px">
+          <select id="pPreset" style="max-width:240px"></select>
+          <button class="btn pri" id="pAdd">Добавить профиль</button>
+        </div>
+        <div class="note"><b>Автозапуск без инъекций.</b> Хаб наблюдает за списком процессов (ReadProcessMemory не используется — только имена процессов) и показывает оверлей, когда целевой процесс появляется; плюс опция «запускать с Windows» через Планировщик задач. Никаких DLL, хуков и записи в чужую память — это красные линии продукта (PLAN §3.3).</div>
+      </div>
+    </section>
+
+    <!-- ================= НАСТРОЙКИ ================= -->
+    <section class="view" id="v-settings">
+      <div class="cols" style="grid-template-columns:1fr 380px">
+        <div class="panel" style="max-width:700px">
+          <h2 class="sec">Поведение оверлея</h2>
+          <div class="setrow"><div class="t"><b>Запускать с Windows</b><span>Планировщик задач, без прав администратора</span></div><div class="tg on" data-tg></div></div>
+          <div class="setrow"><div class="t"><b>Старт при запуске игры</b><span>Наблюдение за процессом из списка профилей</span></div><div class="tg on" data-tg></div></div>
+          <div class="setrow"><div class="t"><b>Полностью заменять мышь</b><span>Скрыть системный курсор, оставить только прицел (spike: --cursor --cursor-blank)</span></div><div class="tg" data-tg></div></div>
+          <div class="setrow"><div class="t"><b>Плавные анимации появления/ухода</b><span>fade, мс</span></div><input type="range" id="sFade" min="60" max="400" step="20" value="160" style="max-width:180px"><b id="vFade" style="width:52px;text-align:right">160</b></div>
+          <div class="setrow"><div class="t"><b>Скрывать при alt-tab и потере фокуса</b><span>behavior.hideWhen</span></div><div class="tg on" data-tg></div></div>
+          <div class="setrow"><div class="t"><b>Показывать p50/p95 в трее</b><span>Локальная метрика задержки input→present</span></div><div class="tg on" data-tg></div></div>
+          <h2 class="sec" style="margin-top:18px">Горячие клавиши</h2>
+          <div class="setrow"><div class="t"><b>Показать / скрыть (паника)</b></div><span class="kbd">F7</span></div>
+          <div class="setrow"><div class="t"><b>Выход</b><span>плюс запасной из цепочки F12 → F10 → Pause → Ctrl+Alt+Q</span></div><span class="kbd">F8</span></div>
+          <div class="setrow"><div class="t"><b>Центр ↔ курсор</b></div><span class="kbd">F9</span></div>
+          <div class="note">В продукте (M5) клавиши переназначаемые: хаб сам ищет свободную комбинацию и предлагает её, если твоя занята другой программой.</div>
+        </div>
+        <div class="panel">
+          <h2 class="sec">Перф-бюджеты (цели v1)</h2>
+          <table><tbody>
+            <tr><td>ОЗУ ядра без UI</td><td style="text-align:right">≤ 25 МБ</td></tr>
+            <tr><td>CPU, статичный прицел</td><td style="text-align:right">0 перерисовок</td></tr>
+            <tr><td>CPU, анимация @60 Гц</td><td style="text-align:right">≤ 1,5% ядра</td></tr>
+            <tr><td>Задержка input→present</td><td style="text-align:right">≤ 4 мс</td></tr>
+            <tr><td>Влияние на FPS игры</td><td style="text-align:right">≤ 1% avg</td></tr>
+          </tbody></table>
+          <h2 class="sec" style="margin-top:16px">Замерено на спайке (твой стенд)</h2>
+          <table><tbody>
+            <tr><td>p50 input→present</td><td style="text-align:right" class="ok">0,157 мс</td></tr>
+            <tr><td>p95 input→present</td><td style="text-align:right" class="ok">0,387 мс</td></tr>
+            <tr><td>max (n=2967)</td><td style="text-align:right">0,770 мс</td></tr>
+          </tbody></table>
+          <div class="note">Игровой A/B (PresentMon/CapFrameX, 3×60 с вкл/выкл) ещё впереди — M0-2.</div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<aside id="drawer">
+  <div class="ph"><img id="dImg" alt=""></div>
+  <div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">
+    <b id="dName" style="font-size:16px"></b><span class="chip" id="dCat"></span>
+  </div>
+  <div id="dTags" style="color:var(--mut);font-size:12px;margin:6px 0 2px"></div>
+  <div class="row">
+    <button class="btn pri" id="dCopy">Копировать JSON</button>
+    <button class="btn" id="dDl">Скачать</button>
+    <button class="btn gho" id="dAi">Похожий через ИИ</button>
+  </div>
+  <h2 class="sec" style="margin-top:6px">DSL пресета</h2>
+  <pre class="code" id="dJson"></pre>
+  <div class="row"><button class="btn gho" id="dClose">Закрыть</button></div>
+</aside>
+
+<div id="toast"></div>
+<script src="data.js"></script>
+<script>
+"use strict";
+const D = window.OVERLEY_DATA;
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+const toast = m => { const t=$("#toast"); t.textContent=m; t.classList.add("on"); clearTimeout(t._h); t._h=setTimeout(()=>t.classList.remove("on"),1800); };
+const copy = (txt,msg) => navigator.clipboard.writeText(txt).then(()=>toast(msg||"Скопировано")).catch(()=>{ const ta=document.createElement("textarea"); ta.value=txt; document.body.appendChild(ta); ta.select(); document.execCommand("copy"); ta.remove(); toast(msg||"Скопировано"); });
+const dl = (name,txt) => { const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([txt],{type:"application/json"})); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); };
+
+/* ---------- навигация ---------- */
+const TITLES = {gallery:"Галерея прицелов", editor:"Редактор пресета", ai:"ИИ-импорт", profiles:"Профили приложений", settings:"Настройки"};
+$$(".nav").forEach(n=>n.onclick=()=>{ $$(".nav").forEach(x=>x.classList.remove("on")); n.classList.add("on");
+  $$(".view").forEach(v=>v.classList.remove("on")); $("#v-"+n.dataset.v).classList.add("on"); $("#vTitle").textContent=TITLES[n.dataset.v]; });
+const go = v => $$(".nav").find(n=>n.dataset.v===v).click();
+
+/* ---------- галерея ---------- */
+const CATS = {all:"все", classic:"классика", dot:"точки", ring:"кольца", tactical:"тактические", neon:"неон", fun:"фан", sniper:"снайперские"};
+let curCat="all", curSel=null;
+$("#cCount").textContent = D.gallery.length;
+function renderCats(){ $("#cats").innerHTML=""; for(const k in CATS){ const b=document.createElement("button"); b.className="cat"+(k===curCat?" on":""); b.textContent=CATS[k]; b.onclick=()=>{curCat=k; renderCats(); renderGrid();}; $("#cats").appendChild(b);} }
+function renderGrid(){ const g=$("#grid"); g.innerHTML="";
+  D.gallery.filter(p=>curCat==="all"||p.category===curCat).forEach(p=>{
+    const c=document.createElement("div"); c.className="card"+(curSel===p.id?" sel":"");
+    c.innerHTML=`<div class="ph"><img src="data:image/png;base64,${p.png}" alt=""></div>
+      <div class="nm"><span>${p.name}</span><i>${CATS[p.category]||p.category}</i></div>`;
+    c.onclick=()=>openDrawer(p); g.appendChild(c);
+  }); }
+function openDrawer(p){ curSel=p.id; renderGrid();
+  $("#dImg").src="data:image/png;base64,"+p.png; $("#dName").textContent=p.name;
+  $("#dCat").textContent=CATS[p.category]||p.category; $("#dTags").textContent="#"+(p.tags||[]).join(" #");
+  $("#dJson").textContent=JSON.stringify(p.dsl,null,2);
+  $("#drawer").classList.add("on");
+  $("#dCopy").onclick=()=>copy(JSON.stringify(p.dsl,null,2),"JSON пресета в буфере");
+  $("#dDl").onclick=()=>dl(p.id+".ovcross.json",JSON.stringify(p.dsl,null,2));
+  $("#dAi").onclick=()=>{ $("#aiIn").value=""; go("ai"); toast("Шаг 1: скопируй промпт и попроси ИИ сделать вариант в стиле «"+p.name+"»"); };
+}
+$("#dClose").onclick=()=>{ $("#drawer").classList.remove("on"); curSel=null; renderGrid(); };
+
+/* ---------- мини-рендерер DSL (rect/circle/ring/line) ---------- */
+function drawDsl(ctx,dsl,S,cx,cy){
+  ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+  const ol = dsl.style && dsl.style.outline;
+  const pass = (isOutline)=>{
+    for(const L of dsl.layers||[]){
+      const fill = isOutline ? (ol?ol.color:"#000") : (L.fill||"#fff");
+      const grow = isOutline ? (ol?ol.width:0)*2 : 0;
+      ctx.fillStyle=fill; ctx.strokeStyle=fill; ctx.lineCap = L.cap==="round"?"round":"butt";
+      const X = v=>cx+v*S, Y = v=>cy+v*S;
+      if(L.type==="rect"){ const w=(L.size[0])*S+grow, h=(L.size[1])*S+grow, px=X(L.pos?L.pos[0]:0), py=Y(L.pos?L.pos[1]:0); ctx.fillRect(px-w/2,py-h/2,w,h); }
+      else if(L.type==="circle"){ const r=L.r*S+grow/2; ctx.beginPath(); ctx.arc(X(L.pos?L.pos[0]:0),Y(L.pos?L.pos[1]:0),r,0,7); ctx.fill(); }
+      else if(L.type==="ring"){ const r=L.r*S+grow/2; ctx.lineWidth=((L.thickness||1)*S)+grow; ctx.beginPath(); ctx.arc(X(L.pos?L.pos[0]:0),Y(L.pos?L.pos[1]:0),r,0,7); ctx.stroke(); }
+      else if(L.type==="line"){ ctx.lineWidth=((L.thickness||1)*S)+grow; ctx.beginPath(); ctx.moveTo(X(L.from[0]),Y(L.from[1])); ctx.lineTo(X(L.to[0]),Y(L.to[1])); ctx.stroke(); }
+    }
+  };
+  if(ol && ol.enabled!==false) pass(true);
+  pass(false);
+}
+
+/* ---------- редактор ---------- */
+function editorDsl(){
+  const t=$("#eType").value, col=$("#eColor").value, th=+$("#eTh").value, len=+$("#eLen").value,
+        gap=+$("#eGap").value, R=+$("#eR").value, dot=+$("#eDot").value, olw=+$("#eOl").value, olc=$("#eOlC").value;
+  const L=[]; const g=gap+len/2;
+  const cross=()=>{ L.push({id:"n",type:"rect",size:[th,len],pos:[0,-g],fill:col});
+    L.push({id:"s",type:"rect",size:[th,len],pos:[0,g],fill:col});
+    L.push({id:"w",type:"rect",size:[len,th],pos:[-g,0],fill:col});
+    L.push({id:"e",type:"rect",size:[len,th],pos:[g,0],fill:col}); };
+  if(t==="cross"||t==="crossdot") cross();
+  if(t==="ringdot"||t==="ring") L.push({id:"ring",type:"ring",r:R,thickness:th,fill:col});
+  if(t==="crossdot"||t==="ringdot"||t==="dot") L.push({id:"dot",type:"circle",r:dot,fill:col});
+  return {format:"overley.crosshair",version:1,
+    meta:{name:"Мой прицел",author:"я",tags:["custom"],license:"CC0-1.0",source:"user"},
+    canvas:{size:[128,128],dpiScale:"auto"},
+    style:{opacity:1,outline:{color:olc+"CC",width:olw,enabled:olw>0},pixelSnap:true},
+    layers:L,
+    behavior:{mode:"center",offset:[0,0],hideWhen:{appNotFocused:true,altTab:true},cursorHide:"overlay-only"}};
+}
+function editorSync(){
+  $("#vTh").textContent=(+$("#eTh").value).toFixed(2).replace(/0$/,"");
+  $("#vLen").textContent=$("#eLen").value; $("#vGap").textContent=$("#eGap").value;
+  $("#vR").textContent=$("#eR").value; $("#vDot").textContent=$("#eDot").value; $("#vOl").textContent=$("#eOl").value;
+  $("#vFade") && ($("#vFade").textContent=$("#sFade").value);
+  const dsl=editorDsl(); $("#eJson").textContent=JSON.stringify(dsl,null,2);
+  const cv=$("#cv"), ctx=cv.getContext("2d");
+  const W=cv.width=cv.clientWidth*devicePixelRatio, H=cv.height=cv.clientHeight*devicePixelRatio;
+  drawDsl(ctx,dsl,6*devicePixelRatio,W/2,H/2);
+}
+$$("#v-editor input,#v-editor select").forEach(el=>el.addEventListener("input",editorSync));
+$("#eCopy").onclick=()=>copy(JSON.stringify(editorDsl(),null,2),"JSON пресета в буфере");
+$("#eDl").onclick=()=>dl("my-crosshair.ovcross.json",JSON.stringify(editorDsl(),null,2));
+
+/* ---------- ИИ-импорт ---------- */
+$("#aiPrompt").value=D.prompt_ru;
+$("#aiCopy").onclick=()=>copy($("#aiPrompt").value,"Промпт (RU) в буфере — вставь его в чат ИИ");
+$("#aiMini").onclick=()=>{ $("#aiPrompt").value=D.prompt_mini; toast("Мини-промпт подставлен — скопируй"); };
+$("#aiClear").onclick=()=>{ $("#aiIn").value=""; $("#aiRes").innerHTML=""; $("#aiJson").textContent=""; };
+function normalize(raw){
+  let t=raw.trim();
+  t=t.replace(/^\s*```[a-zA-Z]*\s*/,"").replace(/\s*```\s*$/,"");          // сняли ограждения
+  const i=t.indexOf("{"), j=t.lastIndexOf("}");
+  if(i<0||j<0) throw new Error("не найден JSON-объект (нет { … })");
+  t=t.slice(i,j+1);
+  t=t.replace(/,\s*([}\]])/g,"$1");                                         // висячие запятые
+  return JSON.parse(t);
+}
+function validate(d){
+  const errs=[];
+  if(d.format!=="overley.crosshair") errs.push("format ≠ overley.crosshair");
+  if(d.version!==1) errs.push("version ≠ 1");
+  if(!Array.isArray(d.layers)||!d.layers.length) errs.push("layers пуст или не массив");
+  else d.layers.forEach((L,k)=>{ if(!L||typeof L!=="object"||!L.type) errs.push(`слой ${k}: нет type`);
+    else if(!["rect","circle","ring","line","poly","arc","path","text","image","group"].includes(L.type)) errs.push(`слой ${k}: неизвестный type «${L.type}»`); });
+  return errs;
+}
+$("#aiGo").onclick=()=>{
+  const res=$("#aiRes"); res.innerHTML="";
+  let d; try{ d=normalize($("#aiIn").value); }
+  catch(e){ const msg=e.message;
+    res.innerHTML=`<div class="bad">✖ Нормализация/парсинг: ${msg}</div><div class="row"><button class="btn" id="aiFix">Собрать follow-up «исправь ошибки»</button></div>`;
+    $("#aiFix").onclick=()=>copy("Твой прошлый ответ не распарсился как JSON. Ошибка: "+msg+". Верни ТОЛЬКО исправленный JSON-объект схемы overley.crosshair v1, без пояснений и без markdown.","Follow-up в буфере");
+    return; }
+  const errs=validate(d);
+  if(errs.length){ res.innerHTML=`<div class="bad">✖ Схема не пройдена:</div><ul style="color:var(--err);font-size:12.5px">${errs.map(e=>`<li>${e}</li>`).join("")}</ul><div class="row"><button class="btn" id="aiFix">Собрать follow-up «исправь ошибки»</button></div>`;
+    $("#aiFix").onclick=()=>copy("Твой JSON не прошёл схему overley.crosshair v1:\n- "+errs.join("\n- ")+"\nВерни ТОЛЬКО исправленный JSON-объект, без пояснений и без markdown.","Follow-up в буфере");
+    return; }
+  res.innerHTML=`<div class="ok">✔ Пресет валиден: слоёв ${d.layers.length}. Это ровно то, что принимает ядро.</div>`;
+  $("#aiJson").textContent=JSON.stringify(d,null,2);
+  const ctx=$("#aiCv").getContext("2d"); drawDsl(ctx,d,5,110,110);
+  $("#aiDl").disabled=false; $("#aiToEd").disabled=false;
+  $("#aiDl").onclick=()=>dl("ai-crosshair.ovcross.json",JSON.stringify(d,null,2));
+  $("#aiToEd").onclick=()=>{ toast("В продукте (M4) пресет откроется в редакторе послойно; в прототипе — смотри JSON"); go("editor"); };
+};
+
+/* ---------- профили ---------- */
+let PROFILES=[{exe:"cs2.exe",preset:"classic-green",mode:"центр"},{exe:"VALORANT-Win64-Shipping.exe",preset:"dot-in-ring",mode:"центр"},{exe:"notepad.exe",preset:"classic-thin-white",mode:"курсор"}];
+function renderProfiles(){ const tb=$("#pTab").querySelector("tbody"); tb.innerHTML="";
+  PROFILES.forEach((p,i)=>{ const tr=document.createElement("tr");
+    tr.innerHTML=`<td><code>${p.exe}</code></td><td>${(D.gallery.find(g=>g.id===p.preset)||{}).name||p.preset}</td><td>${p.mode}</td><td style="text-align:right"><button class="btn gho" data-i="${i}">✕</button></td>`;
+    tr.querySelector("button").onclick=()=>{PROFILES.splice(i,1); renderProfiles();};
+    tb.appendChild(tr); }); }
+$("#pPreset").innerHTML=D.gallery.map(g=>`<option value="${g.id}">${g.name}</option>`).join("");
+$("#pAdd").onclick=()=>{ const e=$("#pExe").value.trim(); if(!e) return toast("Укажи имя процесса"); PROFILES.push({exe:e,preset:$("#pPreset").value,mode:"центр"}); $("#pExe").value=""; renderProfiles(); toast("Профиль добавлен"); };
+
+/* ---------- настройки ---------- */
+$$("[data-tg]").forEach(t=>t.onclick=()=>t.classList.toggle("on"));
+$("#sFade").addEventListener("input",()=>$("#vFade").textContent=$("#sFade").value);
+
+renderCats(); renderGrid(); renderProfiles(); editorSync();
+window.addEventListener("resize",editorSync);
+</script>
+</body>
+</html>
