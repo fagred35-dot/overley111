@@ -40,8 +40,11 @@
 ```
 schema/crosshair-v1.schema.json     # схема (draft 2020-12)
 schema/tests/invalid/*.json         # 8 негативных тестов: обязаны отклоняться
+schema/tests/ai-roundtrip/*.md      # сырые «ответы моделей» для теста импорта (M5-9)
 presets/examples/*.ovcross.json     # 4 рабочих примера
 tools/validate_presets.py           # CLI-валидатор (для CI и для пользователя)
+tools/render_preview.py             # референсный рендерер DSL → PNG (эталон семантики, без зависимостей)
+tools/normalize_ai_answer.py        # нормализатор «сырого» ответа ИИ → чистый JSON (эталон шага M5-4)
 ci/validate-presets.yml             # GitHub Actions воркфлоу (см. комментарий внутри: как подключить)
 ```
 
