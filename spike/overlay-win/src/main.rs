@@ -79,6 +79,7 @@ mod win {
     }
     #[repr(C)]
     #[derive(Clone, Copy)]
+    #[allow(non_snake_case)] // имена полей Win32 MSG оставляем как в SDK
     struct Msg {
         hwnd: HWND,
         message: u32,
@@ -387,6 +388,23 @@ mod win {
 
     // --------------------------------------------------------------- запуск
 
+    const USAGE: &str = "\
+Использование:
+  overlay-win.exe [путь_к_пресету.ovcross.json] [флаги]
+
+Флаги:
+  --cursor        прицел следует за системным курсором
+  --center        прицел в центре активного окна (по умолчанию, если пресет не говорит иного)
+  --cursor-blank  подменить системный курсор пустым (эксперимент M0-4)
+  --scale N       масштаб растра (по умолчанию 2)
+  --restore-cursor  вернуть системные курсоры после сбоя и выйти
+  -h, --help      эта справка
+
+Примеры (из папки spike):
+  ..\\target\\release\\overlay-win.exe ..\\presets\\examples\\classic-cross.ovcross.json
+  ..\\target\\release\\overlay-win.exe ..\\presets\\builtin\\neon-rotor.ovcross.json --cursor
+Хоткеи: F7 показать/скрыть, F8 выход, F9 центр/курсор.";
+
     pub fn run() {
         let args: Vec<String> = std::env::args().collect();
         if args.iter().any(|a| a == "--restore-cursor") {
@@ -416,13 +434,23 @@ mod win {
             }
             i += 1;
         }
+        if args.iter().any(|a| a == "--help" || a == "-h") {
+            println!("{USAGE}");
+            return;
+        }
         let preset_path = preset_path
-            .unwrap_or_else(|| "presets/examples/classic-cross.ovcross.json".to_string());
+            .unwrap_or_else(|| "../presets/examples/classic-cross.ovcross.json".to_string());
 
         let preset: Preset = match crate::preset::load(&preset_path) {
             Ok(p) => p,
             Err(e) => {
                 eprintln!("не загрузился пресет: {}", e.0);
+                eprintln!("текущая папка: {}", std::env::current_dir().unwrap_or_default().display());
+                eprintln!();
+                eprintln!("{USAGE}");
+                eprintln!("Нажми Enter, чтобы закрыть…");
+                let mut line = String::new();
+                let _ = std::io::stdin().read_line(&mut line);
                 std::process::exit(2);
             }
         };
@@ -568,7 +596,7 @@ mod win {
             UnregisterHotKey(hwnd, 1);
             UnregisterHotKey(hwnd, 2);
             UnregisterHotKey(hwnd, 3);
-            SelectObject(mem_dc, old_obj);
+            SelectObject(st.mem_dc, st.old_obj);
             DeleteObject(dib);
             DeleteDC(mem_dc);
             DestroyWindow(hwnd);
