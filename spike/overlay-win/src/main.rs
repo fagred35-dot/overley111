@@ -205,6 +205,9 @@ mod win {
     const VK_F7: u32 = 0x76;
     const VK_F8: u32 = 0x77;
     const VK_F9: u32 = 0x78;
+    const VK_F12: u32 = 0x7B;
+    const SW_SHOWNOACTIVATE: i32 = 4;
+    const FADE_US: i64 = 160_000; // плавность появления/ухода, мкс
     const SPI_SETCURSORS: u32 = 0x0057;
     const OCR_NORMAL: u32 = 32512;
     const OCR_IBEAM: u32 = 32513;
@@ -230,7 +233,10 @@ mod win {
         frame: Frame,
         mem_dc: HDC,
         old_obj: isize,
-        visible: bool,
+        want_visible: bool,
+        alpha: u8,      // текущая глобальная прозрачность (fade), 0..255
+        fade_dir: i8,   // 1 = появление, -1 = уход, 0 = покой
+        fade_start: i64,
         cursor_blank: bool,
         last_x: i32,
         last_y: i32,
@@ -263,7 +269,7 @@ mod win {
         let dst = Point { x, y };
         let size = Size { cx: st.frame.width as i32, cy: st.frame.height as i32 };
         let src = Point { x: 0, y: 0 };
-        let blend = BlendFunction { blend_op: 0, blend_flags: 0, source_constant_alpha: 255, alpha_format: 1 };
+        let blend = BlendFunction { blend_op: 0, blend_flags: 0, source_constant_alpha: st.alpha, alpha_format: 1 };
         let ok = unsafe {
             UpdateLayeredWindow(st.hwnd, 0, &dst, &size, st.mem_dc, &src, 0, &blend, ULW_ALPHA)
         };
@@ -296,26 +302,58 @@ mod win {
         }
     }
 
+    fn start_fade(st: &mut State, want: bool) {
+        st.want_visible = want;
+        st.fade_dir = if want { 1 } else { -1 };
+        st.fade_start = now_us(st.qpc_freq);
+        if want {
+            unsafe { ShowWindow(st.hwnd, SW_SHOWNOACTIVATE) };
+        }
+        println!("[spike] оверлей: {}", if want { "появление (fade-in)" } else { "уход (fade-out)" });
+    }
+
+    /// Гарантированный выход: печатаем сводку, освобождаем Win32, завершаем процесс.
+    /// process::exit — сознательно для спайка: никаких «залипших» окон после F8/F12.
+    fn do_quit() -> ! {
+        let st = state();
+        if !st.samples.is_empty() {
+            let mut v = st.samples.clone();
+            v.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            let q = |p: f64| v[(p * (v.len() - 1) as f64) as usize];
+            println!(
+                "[spike] задержка input→present (мкс): p50={:.0} p95={:.0} max={:.0} (n={})",
+                q(0.5), q(0.95), v[v.len() - 1], v.len()
+            );
+        }
+        unsafe {
+            UnregisterHotKey(st.hwnd, 1);
+            UnregisterHotKey(st.hwnd, 2);
+            UnregisterHotKey(st.hwnd, 3);
+            UnregisterHotKey(st.hwnd, 4);
+            SelectObject(st.mem_dc, st.old_obj);
+            DeleteDC(st.mem_dc);
+            DestroyWindow(st.hwnd);
+            timeEndPeriod(1);
+        }
+        if st.cursor_blank {
+            restore_cursor();
+        }
+        println!("[spike] завершено");
+        std::process::exit(0);
+    }
+
     extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> LRESULT {
         match msg {
             WM_HOTKEY => {
                 let st = state();
                 match wp as i32 {
                     1 => {
-                        // F7: показать/спрятать (паника)
-                        st.visible = !st.visible;
-                        if st.visible {
-                            let (x, y) = target_pos(st);
-                            present(st, x, y);
-                            unsafe { ShowWindow(st.hwnd, 4) };
-                        } else {
-                            unsafe { ShowWindow(st.hwnd, SW_HIDE) };
-                        }
-                        println!("[spike] оверлей {}", if st.visible { "ПОКАЗАН" } else { "СКРЫТ" });
+                        // F7: показать/спрятать (паника), плавно
+                        start_fade(st, !st.want_visible);
                     }
-                    2 => {
-                        // F8: выйти (и восстановить курсор)
-                        unsafe { PostQuitMessage(0) };
+                    2 | 4 => {
+                        // F8 / F12: выйти (и восстановить курсор)
+                        do_quit();
                     }
                     3 => {
                         // F9: переключить center/cursor на лету
@@ -333,9 +371,24 @@ mod win {
             }
             WM_TIMER => {
                 let st = state();
+                let mut force = false;
+                if st.fade_dir != 0 {
+                    let t = (now_us(st.qpc_freq) - st.fade_start) as f64 / FADE_US as f64;
+                    let k = if t < 0.0 { 0.0 } else if t > 1.0 { 1.0 } else { t };
+                    let e = k * k * (3.0 - 2.0 * k); // smoothstep
+                    st.alpha = ((if st.fade_dir > 0 { e } else { 1.0 - e }) * 255.0).round() as u8;
+                    if k >= 1.0 {
+                        st.fade_dir = 0;
+                        if st.alpha == 0 {
+                            unsafe { ShowWindow(st.hwnd, SW_HIDE) };
+                        }
+                    }
+                    force = true;
+                }
+                let alive = st.alpha > 0;
                 let t0 = now_us(st.qpc_freq);
                 let (x, y) = target_pos(st);
-                if st.visible && (x != st.last_x || y != st.last_y || st.mode == Mode::Cursor) {
+                if alive && (force || x != st.last_x || y != st.last_y || st.mode == Mode::Cursor) {
                     present(st, x, y);
                     let dt = now_us(st.qpc_freq) - t0;
                     st.samples.push(dt as f64);
@@ -346,8 +399,7 @@ mod win {
                 0
             }
             WM_DESTROY => {
-                unsafe { PostQuitMessage(0) };
-                0
+                do_quit();
             }
             _ => unsafe { DefWindowProcW(hwnd, msg, wp, lp) },
         }
@@ -415,16 +467,13 @@ mod win {
         let mut preset_path = None;
         let mut force_mode = None;
         let mut cursor_blank = false;
-        let mut out_scale = 2.0f32;
+        let mut out_scale = 1.0f32;
         let mut i = 1;
         while i < args.len() {
             match args[i].as_str() {
                 "--cursor" => force_mode = Some(Mode::Cursor),
                 "--center" => force_mode = Some(Mode::Center),
-                "--cursor-blank" => {
-                    cursor_blank = true;
-                    force_mode = force_mode.or(Some(Mode::Center));
-                }
+                "--cursor-blank" => cursor_blank = true,
                 "--scale" => {
                     i += 1;
                     out_scale = args.get(i).and_then(|v| v.parse().ok()).unwrap_or(2.0);
@@ -542,7 +591,10 @@ mod win {
             frame,
             mem_dc,
             old_obj,
-            visible: true,
+            want_visible: true,
+            alpha: 0,
+            fade_dir: 0,
+            fade_start: 0,
             cursor_blank: false,
             last_x: i32::MIN,
             last_y: i32::MIN,
@@ -556,15 +608,22 @@ mod win {
             state().cursor_blank = blank_the_cursor();
         }
 
-        unsafe { RegisterHotKey(hwnd, 1, MOD_NOREPEAT, VK_F7) };
-        unsafe { RegisterHotKey(hwnd, 2, MOD_NOREPEAT, VK_F8) };
-        unsafe { RegisterHotKey(hwnd, 3, MOD_NOREPEAT, VK_F9) };
-        println!("[spike] хоткеи: F7 показать/скрыть · F8 выйти · F9 центр/курсор");
+        for (id, vk, name) in [
+            (1i32, VK_F7, "F7 показать/скрыть"),
+            (2i32, VK_F8, "F8 выход"),
+            (3i32, VK_F9, "F9 центр/курсор"),
+            (4i32, VK_F12, "F12 выход (запасной)"),
+        ] {
+            if unsafe { RegisterHotKey(hwnd, id, MOD_NOREPEAT, vk) } == 0 {
+                eprintln!("  ! хоткей {name} НЕ зарегистрирован: комбинация занята другой программой");
+            }
+        }
+        println!("[spike] хоткеи: F7 показать/скрыть · F8/F12 выход · F9 центр/курсор");
 
         unsafe { SetTimer(hwnd, 1, 1, None) };
         let (x, y) = target_pos(state());
         present(state(), x, y);
-        unsafe { ShowWindow(hwnd, 4) };
+        start_fade(state(), true);
         unsafe { SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE) };
 
         println!("[spike] оверлей активен. Закрой игру/окно и проверь, что прицел остался поверх.");
@@ -581,30 +640,6 @@ mod win {
             }
         }
 
-        // сводка по задержкам (cursor-режим)
-        let st = state();
-        if !st.samples.is_empty() {
-            let mut s = st.samples.clone();
-            s.sort_by(|a, b| a.partial_cmp(b).unwrap());
-            let q = |p: f64| s[(p * (s.len() - 1) as f64) as usize];
-            println!(
-                "[spike] задержка input→present (мкс): p50={:.0} p95={:.0} max={:.0} (n={})",
-                q(0.5), q(0.95), s[s.len() - 1], s.len()
-            );
-        }
-        unsafe {
-            UnregisterHotKey(hwnd, 1);
-            UnregisterHotKey(hwnd, 2);
-            UnregisterHotKey(hwnd, 3);
-            SelectObject(st.mem_dc, st.old_obj);
-            DeleteObject(dib);
-            DeleteDC(mem_dc);
-            DestroyWindow(hwnd);
-            timeEndPeriod(1);
-        }
-        if st.cursor_blank {
-            restore_cursor();
-        }
-        println!("[spike] завершено");
+        do_quit();
     }
 }
