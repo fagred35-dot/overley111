@@ -1,0 +1,45 @@
+# ВНИМАНИЕ: этот файл нельзя положить в .github/workflows/ напрямую из автоматизированной
+# среды — GitHub отклоняет push, если у токена нет права `workflows`.
+# Подключение вручную (один раз):
+#   cp ci/validate-presets.yml .github/workflows/validate-presets.yml && git add -A && git commit && git push
+# Проверка формата локально без CI:  python tools/validate_presets.py
+name: presets
+
+# Проверяет формат пресетов на каждом изменении:
+#  - все файлы в presets/ обязаны быть валидны против schema/crosshair-v1.schema.json
+#  - все файлы в schema/tests/invalid/ обязаны ОТКЛОНЯТЬСЯ
+on:
+  push:
+    paths:
+      - "schema/**"
+      - "presets/**"
+      - "tools/**"
+      - ".github/workflows/validate-presets.yml"
+  pull_request:
+    paths:
+      - "schema/**"
+      - "presets/**"
+      - "tools/**"
+      - ".github/workflows/validate-presets.yml"
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install jsonschema
+        run: pip install "jsonschema>=4.18"
+
+      - name: Validate presets and negative tests
+        run: python tools/validate_presets.py
+
+      - name: Summary
+        if: always()
+        run: |
+          echo "Пресетов: $(ls presets/**/*.json 2>/dev/null | wc -l)" >> "$GITHUB_STEP_SUMMARY"
+          echo "Негативных тестов: $(ls schema/tests/invalid/*.json 2>/dev/null | wc -l)" >> "$GITHUB_STEP_SUMMARY"

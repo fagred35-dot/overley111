@@ -1,0 +1,522 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://overley.app/schema/crosshair-v1.schema.json",
+  "title": "Overley Crosshair DSL v1",
+  "description": "Декларативный формат описания прицела для приложения Overley. Файл .ovcross — это JSON, соответствующий этой схеме. Никаких внешних ресурсов, никакого кода: только геометрия, стили, анимации и привязки к сигналам мыши/времени.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["format", "version", "layers"],
+  "properties": {
+    "format": {
+      "description": "Идентификатор формата. Всегда 'overley.crosshair'.",
+      "const": "overley.crosshair"
+    },
+    "version": {
+      "description": "Версия DSL. Сейчас 1.",
+      "const": 1
+    },
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1, "maxLength": 64 },
+        "author": { "type": "string", "maxLength": 64 },
+        "description": { "type": "string", "maxLength": 500 },
+        "tags": {
+          "type": "array",
+          "maxItems": 12,
+          "items": { "type": "string", "maxLength": 24, "pattern": "^[a-z0-9а-я-_ ]+$" }
+        },
+        "license": { "type": "string", "maxLength": 40 },
+        "source": {
+          "description": "Откуда пришёл прицел: 'builtin', 'editor', 'ai', 'import'.",
+          "enum": ["builtin", "editor", "ai", "import"]
+        },
+        "aiModel": { "type": "string", "maxLength": 64 }
+      }
+    },
+    "canvas": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "size": {
+          "description": "Логический размер холста в px (ширина, высота). Точка прицеливания — в canvas.origin.",
+          "$ref": "#/$defs/sizePair",
+          "default": [128, 128]
+        },
+        "origin": {
+          "description": "Координата точки прицеливания внутри холста. По умолчанию — центр.",
+          "$ref": "#/$defs/vec2"
+        },
+        "dpiScale": {
+          "description": "'auto' — масштабировать под DPI монитора; либо число.",
+          "oneOf": [
+            { "const": "auto" },
+            { "type": "number", "minimum": 0.25, "maximum": 4 }
+          ],
+          "default": "auto"
+        },
+        "background": {
+          "description": "Отладочный фон холста (в оверлее игнорируется, используется в превью).",
+          "oneOf": [
+            { "$ref": "#/$defs/color" },
+            { "const": "transparent" }
+          ]
+        }
+      }
+    },
+    "style": {
+      "description": "Глобальные эффекты, применяемые ко всему прицелу.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "opacity": { "$ref": "#/$defs/unit", "default": 1 },
+        "outline": {
+          "description": "Единая обводка, рисуется ПОД всеми слоями (классический чёрный контур).",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "color": { "$ref": "#/$defs/color", "default": "#000000B3" },
+            "width": { "type": "number", "minimum": 0, "maximum": 16, "default": 1 },
+            "enabled": { "type": "boolean", "default": true }
+          }
+        },
+        "glow": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "color": { "$ref": "#/$defs/color" },
+            "radius": { "type": "number", "minimum": 0, "maximum": 32, "default": 4 },
+            "enabled": { "type": "boolean", "default": false }
+          }
+        },
+        "blend": {
+          "description": "Режим наложения на изображение игры.",
+          "enum": ["source-over", "screen", "lighten", "difference"],
+          "default": "source-over"
+        },
+        "pixelSnap": { "type": "boolean", "default": true }
+      }
+    },
+    "layers": {
+      "description": "Список слоёв. Рисуются по порядку: первый — снизу.",
+      "type": "array",
+      "minItems": 1,
+      "maxItems": 64,
+      "items": { "$ref": "#/$defs/layer" }
+    },
+    "behavior": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "mode": {
+          "description": "center — прицел в центре экрана (FPS); cursor — прицел следует за курсором; auto — переключается по приложению из профиля.",
+          "enum": ["center", "cursor", "auto"],
+          "default": "center"
+        },
+        "offset": {
+          "description": "Смещение точки прицеливания в px относительно центра экрана/курсора.",
+          "$ref": "#/$defs/vec2",
+          "default": [0, 0]
+        },
+        "hideWhen": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "appNotFocused": { "type": "boolean", "default": true },
+            "altTab": { "type": "boolean", "default": true },
+            "cursorVisible": { "type": "boolean", "default": false },
+            "captureRunning": { "type": "boolean", "default": false }
+          }
+        },
+        "cursorHide": {
+          "description": "Как прятать системный курсор, пока оверлей активен.",
+          "enum": ["none", "overlay-only", "system-blank"],
+          "default": "none"
+        },
+        "idleFade": {
+          "description": "Затухание при простое мыши; 0 — выключено.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "afterMs": { "type": "integer", "minimum": 0, "maximum": 600000, "default": 0 },
+            "toOpacity": { "$ref": "#/$defs/unit", "default": 0.25 }
+          }
+        }
+      }
+    },
+    "vars": {
+      "description": "Именованные переменные-выражения, доступные в animate/reactive/числовых полях.",
+      "type": "object",
+      "maxProperties": 16,
+      "additionalProperties": { "$ref": "#/$defs/expression" }
+    },
+    "animate": {
+      "description": "Глобальные анимации (то же, что layer.animate, но для нескольких целей).",
+      "type": "array",
+      "maxItems": 16,
+      "items": { "$ref": "#/$defs/animation" }
+    },
+    "reactive": {
+      "description": "Привязка свойств к сигналам мыши/времени. Источники — только собственные input-сигналы приложения, НЕ данные игры.",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "smoothingMs": { "type": "integer", "minimum": 0, "maximum": 500, "default": 60 },
+        "bindings": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["target", "value"],
+            "properties": {
+              "target": {
+                "description": "Путь к свойству, например 'layers.dot.pos' или 'style.opacity'.",
+                "type": "string",
+                "maxLength": 96,
+                "pattern": "^[A-Za-z0-9_.\\[\\]-]+$"
+              },
+              "value": { "$ref": "#/$defs/expression" },
+              "range": {
+                "description": "Ограничение результата [min, max] — защита от уезда прицела за экран.",
+                "type": "array",
+                "minItems": 2,
+                "maxItems": 2,
+                "items": { "type": "number", "minimum": -512, "maximum": 512 }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "$defs": {
+    "color": {
+      "description": "Цвет: #RGB, #RRGGBB, #RRGGBBAA (hex). Градиенты — объектом.",
+      "oneOf": [
+        { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$" },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["type", "stops"],
+          "properties": {
+            "type": { "enum": ["linear", "radial"] },
+            "from": { "$ref": "#/$defs/vec2" },
+            "to": { "$ref": "#/$defs/vec2" },
+            "stops": {
+              "type": "array",
+              "minItems": 2,
+              "maxItems": 8,
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["color"],
+                "properties": {
+                  "color": { "type": "string", "pattern": "^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6}|[0-9a-fA-F]{8})$" },
+                  "at": { "$ref": "#/$defs/unit" }
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    "vec2": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "number", "minimum": -4096, "maximum": 4096 }
+    },
+    "sizePair": {
+      "type": "array",
+      "minItems": 2,
+      "maxItems": 2,
+      "items": { "type": "number", "minimum": 16, "maximum": 512 }
+    },
+    "unit": { "type": "number", "minimum": 0, "maximum": 1 },
+    "num": {
+      "description": "Число или безопасное выражение (см. CROSSHAIR_DSL.md §Expressions).",
+      "oneOf": [
+        { "type": "number", "minimum": -4096, "maximum": 4096 },
+        { "$ref": "#/$defs/expression" }
+      ]
+    },
+    "expression": {
+      "description": "Строка-выражение. Разрешены: числа, каналы (t, mouseSpeed, mouseDX, mouseDY, mouseButton1..5, wheel, idle, focused, fps), vars, операторы + - * / % ( ) > < >= <= == != && || !, тернарный ?: и функции abs,min,max,clamp,lerp,smoothstep,step,sin,cos,tan,floor,ceil,round,pow,sqrt,fract,mod,sign,hypot. Запрещены: обращения к объектам, скобки-индексы кроме векторов, любые идентификаторы вне белого списка.",
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 240,
+      "pattern": "^[A-Za-z0-9_+\\-*/%().,:<>!=&| ?\\[\\]]+$"
+    },
+    "shadow": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "color": { "$ref": "#/$defs/color" },
+        "blur": { "type": "number", "minimum": 0, "maximum": 24, "default": 4 },
+        "offset": { "$ref": "#/$defs/vec2" },
+        "enabled": { "type": "boolean", "default": true }
+      }
+    },
+    "animation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["props"],
+      "properties": {
+        "target": {
+          "description": "id слоя (для глобального animate). Внутри слоя не указывается.",
+          "type": "string",
+          "maxLength": 48
+        },
+        "duration": { "type": "integer", "minimum": 50, "maximum": 60000, "default": 1000 },
+        "delay": { "type": "integer", "minimum": 0, "maximum": 60000, "default": 0 },
+        "easing": {
+          "enum": [
+            "linear", "easeInQuad", "easeOutQuad", "easeInOutQuad",
+            "easeInCubic", "easeOutCubic", "easeInOutCubic",
+            "easeInOutSine", "easeOutBack", "easeOutElastic", "steps4", "steps8"
+          ],
+          "default": "linear"
+        },
+        "loop": {
+          "description": "true — бесконечно; false — один раз; 'pingpong' — туда-обратно.",
+          "oneOf": [{ "type": "boolean" }, { "const": "pingpong" }],
+          "default": true
+        },
+        "playWhen": {
+          "description": "Условие запуска анимации (выражение). Пусто — всегда.",
+          "$ref": "#/$defs/expression"
+        },
+        "props": {
+          "type": "object",
+          "maxProperties": 12,
+          "additionalProperties": {
+            "oneOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["from", "to"],
+                "properties": {
+                  "from": { "$ref": "#/$defs/num" },
+                  "to": { "$ref": "#/$defs/num" }
+                }
+              },
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["keyframes"],
+                "properties": {
+                  "keyframes": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 16,
+                    "items": { "$ref": "#/$defs/num" }
+                  },
+                  "times": {
+                    "type": "array",
+                    "minItems": 2,
+                    "maxItems": 16,
+                    "items": { "$ref": "#/$defs/unit" }
+                  }
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    "transformProps": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "pos": {
+          "description": "Смещение относительно origin холста, px.",
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/num" },
+          "default": [0, 0]
+        },
+        "rotate": { "$ref": "#/$defs/num", "default": 0 },
+        "scale": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 2,
+          "items": { "$ref": "#/$defs/num" },
+          "default": [1, 1]
+        },
+        "opacity": { "$ref": "#/$defs/num", "default": 1 }
+      }
+    },
+    "layerCommon": {
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "maxLength": 48, "pattern": "^[A-Za-z0-9_-]+$" },
+        "fill": { "$ref": "#/$defs/color" },
+        "stroke": { "$ref": "#/$defs/color" },
+        "strokeWidth": { "type": "number", "minimum": 0, "maximum": 32, "default": 0 },
+        "shadow": { "$ref": "#/$defs/shadow" },
+        "blend": { "enum": ["source-over", "screen", "lighten", "difference"], "default": "source-over" },
+        "animate": { "$ref": "#/$defs/animation" },
+        "visible": {
+          "description": "Условие видимости (выражение) или булево.",
+          "oneOf": [{ "type": "boolean" }, { "$ref": "#/$defs/expression" }]
+        },
+        "pos": {
+          "description": "Смещение относительно origin холста, px.",
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "$ref": "#/$defs/num" },
+          "default": [0, 0]
+        },
+        "rotate": { "$ref": "#/$defs/num", "default": 0 },
+        "scale": {
+          "type": "array", "minItems": 2, "maxItems": 2,
+          "items": { "$ref": "#/$defs/num" },
+          "default": [1, 1]
+        },
+        "opacity": { "$ref": "#/$defs/num", "default": 1 }
+      }
+    },
+    "layer": {
+      "type": "object",
+      "required": ["type"],
+      "unevaluatedProperties": false,
+      "properties": {
+        "type": {
+          "enum": ["rect", "circle", "ring", "line", "poly", "arc", "path", "text", "image", "group"]
+        }
+      },
+      "allOf": [
+        { "$ref": "#/$defs/layerCommon" },
+        {
+          "allOf": [
+            {
+              "if": { "properties": { "type": { "const": "rect" } }, "required": ["type"] },
+              "then": {
+                "required": ["size"],
+                "properties": {
+                  "size": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/num" } },
+                  "radius": { "$ref": "#/$defs/num", "default": 0 },
+                  "anchor": { "enum": ["center", "top-left", "bottom-center"], "default": "center" }
+                }
+              }
+            },
+            {
+              "if": { "properties": { "type": { "const": "circle" } }, "required": ["type"] },
+              "then": {
+                "required": ["r"],
+                "properties": { "r": { "$ref": "#/$defs/num" } }
+              }
+            },
+            {
+              "if": { "properties": { "type": { "const": "ring" } }, "required": ["type"] },
+              "then": {
+                "required": ["r", "thickness"],
+                "properties": {
+                  "r": { "$ref": "#/$defs/num" },
+                  "thickness": { "$ref": "#/$defs/num" },
+                  "dash": { "type": "array", "maxItems": 8, "items": { "type": "number", "minimum": 0, "maximum": 128 } }
+                }
+              }
+            },
+            {
+              "if": { "properties": { "type": { "const": "line" } }, "required": ["type"] },
+              "then": {
+                "required": ["from", "to", "thickness"],
+                "properties": {
+                  "from": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/num" } },
+                  "to": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "$ref": "#/$defs/num" } },
+                  "thickness": { "$ref": "#/$defs/num" },
+                  "cap": { "enum": ["butt", "round", "square"], "default": "butt" }
+                }
+              }
+            },
+            {
+              "if": { "properties": { "type": { "const": "poly" } }, "required": ["type"] },
+              "then": {
+                "required": ["points"],
+                "properties": {
+                  "points": { "type": "array", "minItems": 3, "maxItems": 256, "items": { "$ref": "#/$defs/vec2" } },
+                  "closed": { "type": "boolean", "default": true },
+                  "join": { "enum": ["miter", "round", "bevel"], "default": "miter" }
+                }
+              }
+            },
+            {
+              "if": { "properties": { "type": { "const": "arc" } }, "required": ["type"] },
+              "then": {
+                "required": ["r", "thickness", "startAngle", "endAngle"],
+                "properties": {
+                  "r": { "$ref": "#/$defs/num" },
+                  "thickness": { "$ref": "#/$defs/num" },
+                  "startAngle": { "$ref": "#/$defs/num" },
+                  "endAngle": { "$ref": "#/$defs/num" },
+                  "cap": { "enum": ["butt", "round"], "default": "butt" }
+                }
+              }
+            },
+            {
+              "if": { "properties": { "type": { "const": "path" } }, "required": ["type"] },
+              "then": {
+                "required": ["d"],
+                "properties": {
+                  "d": {
+                    "description": "SVG path data (подмножество: M L H V C Q Z, абсолютные и относительные команды).",
+                    "type": "string", "maxLength": 2048
+                  },
+                  "fillRule": { "enum": ["nonzero", "evenodd"], "default": "nonzero" }
+                }
+              }
+            },
+            {
+              "if": { "properties": { "type": { "const": "text" } }, "required": ["type"] },
+              "then": {
+                "required": ["text"],
+                "properties": {
+                  "text": { "type": "string", "maxLength": 16 },
+                  "font": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "properties": {
+                      "family": { "type": "string", "maxLength": 48, "default": "Inter" },
+                      "size": { "type": "number", "minimum": 4, "maximum": 96, "default": 16 },
+                      "weight": { "type": "integer", "minimum": 100, "maximum": 900, "default": 600 }
+                    }
+                  },
+                  "align": { "enum": ["center", "left", "right"], "default": "center" }
+                }
+              }
+            },
+            {
+              "if": { "properties": { "type": { "const": "image" } }, "required": ["type"] },
+              "then": {
+                "required": ["src"],
+                "properties": {
+                  "src": {
+                    "description": "Только data URI (image/png, image/webp). Внешние URL запрещены.",
+                    "type": "string",
+                    "pattern": "^data:image/(png|webp);base64,[A-Za-z0-9+/=]{16,349520}$"
+                  },
+                  "size": { "type": "array", "minItems": 2, "maxItems": 2, "items": { "type": "number", "minimum": 1, "maximum": 512 } },
+                  "tint": { "$ref": "#/$defs/color" },
+                  "filter": { "enum": ["none", "grayscale"], "default": "none" }
+                }
+              }
+            },
+            {
+              "if": { "properties": { "type": { "const": "group" } }, "required": ["type"] },
+              "then": {
+                "required": ["layers"],
+                "properties": {
+                  "layers": { "type": "array", "minItems": 1, "maxItems": 16, "items": { "$ref": "#/$defs/layer" } }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

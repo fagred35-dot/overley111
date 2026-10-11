@@ -1,0 +1,26 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+
+# Rust
+target/
+Cargo.lock.bak
+
+# Node / Tauri (появятся на M1+)
+node_modules/
+dist/
+.vite/
+src-ui/dist/
+
+# Редакторы и ОС
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+
+# Локальные рантайм-данные приложения (никогда не коммитим)
+cursor.lock
+cursor-backup/
+logs/
+*.log

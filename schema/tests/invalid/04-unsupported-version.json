@@ -1,0 +1,15 @@
+{
+  "format": "overley.crosshair",
+  "version": 2,
+  "meta": {
+    "name": "BAD version"
+  },
+  "layers": [
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 4,
+      "fill": "#FFFFFF"
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": { "name": "BAD external image" },
+  "layers": [
+    {
+      "id": "img",
+      "type": "image",
+      "src": "https://evil.example.com/track.png",
+      "size": [32, 32]
+    }
+  ]
+}

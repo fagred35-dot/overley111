@@ -1,0 +1,16 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "BAD svg payload",
+    "description": "<script>alert(1)</script>"
+  },
+  "layers": [
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 4,
+      "fill": "#FFFFFF"
+    }
+  ]
+}

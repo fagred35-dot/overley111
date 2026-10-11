@@ -1,0 +1,31 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Tactical Chevron",
+    "author": "Overley",
+    "description": "Шеврон снизу + две боковые риски: точка прицеливания остаётся пустой, чтобы не перекрывать цель. Демонстрирует слой типа path.",
+    "tags": ["tactical", "chevron", "path", "static"],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": { "size": [128, 128], "dpiScale": "auto" },
+  "style": {
+    "opacity": 0.95,
+    "outline": { "color": "#000000D9", "width": 1.5, "enabled": true },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "chevron",
+      "type": "path",
+      "d": "M -7 12 L 0 5 L 7 12 L 7 15 L 0 8 L -7 15 Z",
+      "pos": [0, 0],
+      "fill": "#FFC400"
+    },
+    { "id": "tick-l", "type": "line", "from": [-18, 0], "to": [-10, 0], "thickness": 2, "pos": [0, 0], "fill": "#FFC400", "cap": "round" },
+    { "id": "tick-r", "type": "line", "from": [10, 0], "to": [18, 0], "thickness": 2, "pos": [0, 0], "fill": "#FFC400", "cap": "round" },
+    { "id": "top", "type": "rect", "size": [2, 5], "pos": [0, -16], "fill": "#FFC400", "opacity": 0.7 }
+  ],
+  "behavior": { "mode": "center", "offset": [0, 0], "cursorHide": "overlay-only" }
+}

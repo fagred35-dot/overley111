@@ -1,0 +1,21 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "BAD canvas size"
+  },
+  "canvas": {
+    "size": [
+      4096,
+      4096
+    ]
+  },
+  "layers": [
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 4,
+      "fill": "#FFFFFF"
+    }
+  ]
+}

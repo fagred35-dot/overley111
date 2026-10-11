@@ -1,0 +1,23 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "BAD reactive without range"
+  },
+  "layers": [
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 4,
+      "fill": "#FFFFFF"
+    }
+  ],
+  "reactive": {
+    "bindings": [
+      {
+        "target": "layers.dot.pos",
+        "value": "[mouseDX * 9999, 0]"
+      }
+    ]
+  }
+}

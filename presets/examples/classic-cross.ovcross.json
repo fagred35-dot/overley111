@@ -1,0 +1,32 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Classic Cross",
+    "author": "Overley",
+    "description": "Классический крест с зазором и чёрной обводкой. Статичный, 0% CPU.",
+    "tags": ["classic", "cross", "static"],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": { "size": [128, 128], "dpiScale": "auto" },
+  "style": {
+    "opacity": 1,
+    "outline": { "color": "#000000CC", "width": 1.5, "enabled": true },
+    "blend": "source-over",
+    "pixelSnap": true
+  },
+  "layers": [
+    { "id": "top", "type": "rect", "size": [2, 8], "pos": [0, -12], "fill": "#00FF88" },
+    { "id": "bottom", "type": "rect", "size": [2, 8], "pos": [0, 12], "fill": "#00FF88" },
+    { "id": "left", "type": "rect", "size": [8, 2], "pos": [-12, 0], "fill": "#00FF88" },
+    { "id": "right", "type": "rect", "size": [8, 2], "pos": [12, 0], "fill": "#00FF88" },
+    { "id": "dot", "type": "circle", "r": 1, "pos": [0, 0], "fill": "#00FF88", "opacity": 0.9 }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [0, 0],
+    "hideWhen": { "appNotFocused": true, "altTab": true },
+    "cursorHide": "none"
+  }
+}

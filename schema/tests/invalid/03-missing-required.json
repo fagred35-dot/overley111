@@ -1,0 +1,14 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "BAD missing required"
+  },
+  "layers": [
+    {
+      "id": "r",
+      "type": "rect",
+      "fill": "#FFFFFF"
+    }
+  ]
+}

@@ -1,0 +1,89 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Neon Pulse Ring",
+    "author": "Overley",
+    "description": "Анимированное неоновое кольцо + крест, который расходится от скорости мыши и сжимается при зажатой ПКМ. Демонстрирует animate + reactive.",
+    "tags": ["neon", "animated", "reactive", "ring"],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": { "size": [192, 192], "dpiScale": "auto" },
+  "style": {
+    "opacity": 1,
+    "outline": { "color": "#05010DCC", "width": 1.25, "enabled": true },
+    "glow": { "color": "#7C4DFF55", "radius": 8, "enabled": true },
+    "blend": "source-over",
+    "pixelSnap": false
+  },
+  "vars": {
+    "speed": "clamp(mouseSpeed / 3000, 0, 1)",
+    "ads": "mouseButton2",
+    "breath": "0.5 + 0.5 * sin(t * 2.2)"
+  },
+  "layers": [
+    {
+      "id": "ring",
+      "type": "ring",
+      "r": 22,
+      "thickness": 2,
+      "pos": [0, 0],
+      "fill": "#00E5FF",
+      "opacity": 0.85,
+      "dash": [6, 10],
+      "animate": {
+        "duration": 6000,
+        "easing": "linear",
+        "loop": true,
+        "props": { "rotate": { "from": 0, "to": 360 } }
+      }
+    },
+    {
+      "id": "halo",
+      "type": "circle",
+      "r": 16,
+      "pos": [0, 0],
+      "fill": "#7C4DFF",
+      "opacity": 0.12,
+      "animate": {
+        "duration": 1400,
+        "easing": "easeInOutSine",
+        "loop": "pingpong",
+        "props": {
+          "scale": { "keyframes": [1, 1.25], "times": [0, 1] },
+          "opacity": { "keyframes": [0.08, 0.22], "times": [0, 1] }
+        }
+      }
+    },
+    { "id": "n", "type": "rect", "size": [2, 9], "pos": [0, -14], "fill": "#FFFFFF" },
+    { "id": "s", "type": "rect", "size": [2, 9], "pos": [0, 14], "fill": "#FFFFFF" },
+    { "id": "w", "type": "rect", "size": [9, 2], "pos": [-14, 0], "fill": "#FFFFFF" },
+    { "id": "e", "type": "rect", "size": [9, 2], "pos": [14, 0], "fill": "#FFFFFF" },
+    {
+      "id": "core",
+      "type": "circle",
+      "r": 1.5,
+      "pos": [0, 0],
+      "fill": "#00E5FF",
+      "shadow": { "color": "#00E5FFAA", "blur": 6, "offset": [0, 0], "enabled": true }
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [0, 0],
+    "hideWhen": { "appNotFocused": true, "altTab": true, "captureRunning": false },
+    "cursorHide": "overlay-only"
+  },
+  "reactive": {
+    "smoothingMs": 80,
+    "bindings": [
+      { "target": "layers.n.pos", "value": "[0, -14 - 10 * speed + 8 * ads]", "range": [-40, 40] },
+      { "target": "layers.s.pos", "value": "[0, 14 + 10 * speed - 8 * ads]", "range": [-40, 40] },
+      { "target": "layers.w.pos", "value": "[-14 - 10 * speed + 8 * ads, 0]", "range": [-40, 40] },
+      { "target": "layers.e.pos", "value": "[14 + 10 * speed - 8 * ads, 0]", "range": [-40, 40] },
+      { "target": "layers.ring.opacity", "value": "0.35 + 0.5 * breath", "range": [0, 1] },
+      { "target": "style.opacity", "value": "focused", "range": [0, 1] }
+    ]
+  }
+}

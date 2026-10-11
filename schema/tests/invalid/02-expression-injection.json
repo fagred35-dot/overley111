@@ -1,0 +1,15 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "BAD expression injection"
+  },
+  "layers": [
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 4,
+      "opacity": "window.document.title"
+    }
+  ]
+}

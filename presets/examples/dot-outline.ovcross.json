@@ -1,0 +1,22 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Dot + Outline",
+    "author": "Overley",
+    "description": "Минималистичная точка с плотной обводкой — максимальная видимость на любом фоне.",
+    "tags": ["dot", "minimal", "static"],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": { "size": [64, 64], "dpiScale": "auto" },
+  "style": {
+    "opacity": 1,
+    "outline": { "color": "#000000E6", "width": 2, "enabled": true },
+    "pixelSnap": true
+  },
+  "layers": [
+    { "id": "dot", "type": "circle", "r": 2.5, "pos": [0, 0], "fill": "#FF2E63" }
+  ],
+  "behavior": { "mode": "center", "cursorHide": "overlay-only" }
+}
