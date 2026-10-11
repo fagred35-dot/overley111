@@ -53,6 +53,23 @@ cargo build --release
 Занимает ~2–4 ГБ и несколько минут; после установки обычный терминал подходит
 (rustc сам находит link.exe через vswhere).
 
+**Если winget отвечает «Найден существующий установленный пакет… Доступные обновления не найдены»:**
+значит Build Tools уже стоят, но БЕЗ нагрузки C++ — winget не умеет добавлять workload к готовому
+продукту и просто ничего не делает. Лечится modify (или GUI: «Visual Studio Installer» →
+Build Tools → «Изменить» → галка «Разработка классических приложений на C++» → «Установить»):
+
+```powershell
+$vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+$path = & $vswhere -latest -products * -property installationPath | Select-Object -First 1
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath $path --quiet --wait --add Microsoft.VisualStudio.Workload.VCTools --includeRecommended
+```
+
+Проверка диагноза (пустой вывод = компоненты C++ нет):
+
+```powershell
+& "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe" -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath
+```
+
 **Путь 2 (без MSVC): GNU-тулчейн Rust + MinGW-w64.** Только для спайка:
 
 ```powershell
