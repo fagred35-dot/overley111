@@ -440,6 +440,7 @@ mod win {
                 0
             }
             WM_APP => {
+                let st = state();
                 let cmds: Vec<Cmd> = {
                     let mut q = CTL.lock().unwrap();
                     std::mem::take(&mut *q)
@@ -520,7 +521,7 @@ mod win {
     /// Тред пайпа: ждёт клиентов \\.\pipe\overley-ctl, читает JSON-строки,
     /// кладёт команды в CTL и будит главный поток через WM_APP.
     fn ctl_thread(hwnd: HWND) {
-        let name = wide("\\.\pipe\overley-ctl");
+        let name = wide(r"\\.\pipe\overley-ctl");
         loop {
             let pipe = unsafe {
                 CreateNamedPipeW(
@@ -848,7 +849,7 @@ mod win {
         unsafe { SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE) };
 
         println!("[spike] оверлей активен. Закрой игру/окно и проверь, что прицел остался поверх.");
-        println!("[spike] канал управления: \\.\\pipe\\overley-ctl (JSON-строки: preset/mode/quit)");
+        println!("[spike] канал управления: \\\\.\\pipe\\overley-ctl (JSON-строки: preset/mode/quit)");
         {
             let h = hwnd;
             std::thread::spawn(move || ctl_thread(h));
