@@ -1,0 +1,98 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Heavy Outline",
+    "author": "Overley",
+    "description": "Жёлтый крест с толстой чёрной обводкой — читается на любом фоне.",
+    "tags": [
+      "cross",
+      "outline",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000E6",
+      "width": 2.5,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "n",
+      "type": "rect",
+      "size": [
+        2,
+        8
+      ],
+      "pos": [
+        0,
+        -11
+      ],
+      "fill": "#FFC400"
+    },
+    {
+      "id": "s",
+      "type": "rect",
+      "size": [
+        2,
+        8
+      ],
+      "pos": [
+        0,
+        11
+      ],
+      "fill": "#FFC400"
+    },
+    {
+      "id": "w",
+      "type": "rect",
+      "size": [
+        8,
+        2
+      ],
+      "pos": [
+        -11,
+        0
+      ],
+      "fill": "#FFC400"
+    },
+    {
+      "id": "e",
+      "type": "rect",
+      "size": [
+        8,
+        2
+      ],
+      "pos": [
+        11,
+        0
+      ],
+      "fill": "#FFC400"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

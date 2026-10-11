@@ -1,0 +1,108 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Sniper Ghost",
+    "author": "Overley",
+    "description": "Почти невидимые риски и яркая точка: ничего не мешает обзору.",
+    "tags": [
+      "sniper",
+      "minimal",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      160,
+      160
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "n",
+      "type": "rect",
+      "size": [
+        1,
+        5
+      ],
+      "pos": [
+        0,
+        -18
+      ],
+      "fill": "#FFFFFF",
+      "opacity": 0.8
+    },
+    {
+      "id": "s",
+      "type": "rect",
+      "size": [
+        1,
+        5
+      ],
+      "pos": [
+        0,
+        18
+      ],
+      "fill": "#FFFFFF",
+      "opacity": 0.8
+    },
+    {
+      "id": "w",
+      "type": "rect",
+      "size": [
+        5,
+        1
+      ],
+      "pos": [
+        -18,
+        0
+      ],
+      "fill": "#FFFFFF",
+      "opacity": 0.8
+    },
+    {
+      "id": "e",
+      "type": "rect",
+      "size": [
+        5,
+        1
+      ],
+      "pos": [
+        18,
+        0
+      ],
+      "fill": "#FFFFFF",
+      "opacity": 0.8
+    },
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 0.8,
+      "fill": "#FF2E63"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

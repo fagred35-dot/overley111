@@ -1,0 +1,59 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Dot in Ring",
+    "author": "Overley",
+    "description": "Точка в тонком кольце: центр виден, кольцо даёт масштаб.",
+    "tags": [
+      "dot",
+      "ring",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "ring",
+      "type": "ring",
+      "r": 6,
+      "thickness": 1.25,
+      "fill": "#FFFFFF"
+    },
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 1.5,
+      "fill": "#FFFFFF"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

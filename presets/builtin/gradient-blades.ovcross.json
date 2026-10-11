@@ -1,0 +1,178 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Gradient Blades",
+    "author": "Overley",
+    "description": "Крест с неоновым градиентом от голубого к фиолетовому.",
+    "tags": [
+      "gradient",
+      "cross",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "n",
+      "type": "rect",
+      "size": [
+        2,
+        10
+      ],
+      "pos": [
+        0,
+        -12
+      ],
+      "fill": {
+        "type": "linear",
+        "from": [
+          0,
+          -17
+        ],
+        "to": [
+          0,
+          -7
+        ],
+        "stops": [
+          {
+            "color": "#00E5FFFF",
+            "at": 0
+          },
+          {
+            "color": "#9D4EDFFF",
+            "at": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "s",
+      "type": "rect",
+      "size": [
+        2,
+        10
+      ],
+      "pos": [
+        0,
+        12
+      ],
+      "fill": {
+        "type": "linear",
+        "from": [
+          0,
+          7
+        ],
+        "to": [
+          0,
+          17
+        ],
+        "stops": [
+          {
+            "color": "#9D4EDFFF",
+            "at": 0
+          },
+          {
+            "color": "#00E5FFFF",
+            "at": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "w",
+      "type": "rect",
+      "size": [
+        10,
+        2
+      ],
+      "pos": [
+        -12,
+        0
+      ],
+      "fill": {
+        "type": "linear",
+        "from": [
+          -17,
+          0
+        ],
+        "to": [
+          -7,
+          0
+        ],
+        "stops": [
+          {
+            "color": "#00E5FFFF",
+            "at": 0
+          },
+          {
+            "color": "#9D4EDFFF",
+            "at": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "e",
+      "type": "rect",
+      "size": [
+        10,
+        2
+      ],
+      "pos": [
+        12,
+        0
+      ],
+      "fill": {
+        "type": "linear",
+        "from": [
+          7,
+          0
+        ],
+        "to": [
+          17,
+          0
+        ],
+        "stops": [
+          {
+            "color": "#9D4EDFFF",
+            "at": 0
+          },
+          {
+            "color": "#00E5FFFF",
+            "at": 1
+          }
+        ]
+      }
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

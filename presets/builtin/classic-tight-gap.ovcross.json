@@ -1,0 +1,104 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Tight Gap",
+    "author": "Overley",
+    "description": "Плотный крест с маленьким зазором для точных одиночных.",
+    "tags": [
+      "cross",
+      "tight",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "n",
+      "type": "rect",
+      "size": [
+        2,
+        7
+      ],
+      "pos": [
+        0,
+        -6
+      ],
+      "fill": "#FF2E63"
+    },
+    {
+      "id": "s",
+      "type": "rect",
+      "size": [
+        2,
+        7
+      ],
+      "pos": [
+        0,
+        6
+      ],
+      "fill": "#FF2E63"
+    },
+    {
+      "id": "w",
+      "type": "rect",
+      "size": [
+        7,
+        2
+      ],
+      "pos": [
+        -6,
+        0
+      ],
+      "fill": "#FF2E63"
+    },
+    {
+      "id": "e",
+      "type": "rect",
+      "size": [
+        7,
+        2
+      ],
+      "pos": [
+        6,
+        0
+      ],
+      "fill": "#FF2E63"
+    },
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 1,
+      "fill": "#FF2E63"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

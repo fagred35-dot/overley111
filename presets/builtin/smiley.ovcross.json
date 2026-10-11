@@ -1,0 +1,83 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Smiley",
+    "author": "Overley",
+    "description": "Смайл: улыбка всегда попадает.",
+    "tags": [
+      "fun",
+      "smiley",
+      "arc"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "face",
+      "type": "ring",
+      "r": 11,
+      "thickness": 1.5,
+      "fill": "#FFC400"
+    },
+    {
+      "id": "eye-l",
+      "type": "circle",
+      "r": 1.4,
+      "pos": [
+        -4,
+        -3.5
+      ],
+      "fill": "#FFC400"
+    },
+    {
+      "id": "eye-r",
+      "type": "circle",
+      "r": 1.4,
+      "pos": [
+        4,
+        -3.5
+      ],
+      "fill": "#FFC400"
+    },
+    {
+      "id": "mouth",
+      "type": "arc",
+      "r": 6,
+      "thickness": 1.5,
+      "startAngle": 25,
+      "endAngle": 155,
+      "fill": "#FFC400",
+      "cap": "round"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

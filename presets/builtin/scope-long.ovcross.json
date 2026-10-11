@@ -1,0 +1,108 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Scope Long",
+    "author": "Overley",
+    "description": "Длинные тонкие линии оптики с узким зазором.",
+    "tags": [
+      "sniper",
+      "scope",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      160,
+      160
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "n",
+      "type": "line",
+      "to": [
+        0,
+        -8
+      ],
+      "thickness": 1.25,
+      "fill": "#00FF66",
+      "from": [
+        0,
+        -26
+      ]
+    },
+    {
+      "id": "s",
+      "type": "line",
+      "to": [
+        0,
+        26
+      ],
+      "thickness": 1.25,
+      "fill": "#00FF66",
+      "from": [
+        0,
+        8
+      ]
+    },
+    {
+      "id": "w",
+      "type": "line",
+      "to": [
+        -8,
+        0
+      ],
+      "thickness": 1.25,
+      "fill": "#00FF66",
+      "from": [
+        -26,
+        0
+      ]
+    },
+    {
+      "id": "e",
+      "type": "line",
+      "to": [
+        26,
+        0
+      ],
+      "thickness": 1.25,
+      "fill": "#00FF66",
+      "from": [
+        8,
+        0
+      ]
+    },
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 0.9,
+      "fill": "#00FF66"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

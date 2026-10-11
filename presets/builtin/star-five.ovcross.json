@@ -1,0 +1,93 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Five Star",
+    "author": "Overley",
+    "description": "Пятиконечная звезда: точка прицеливания в центре звезды.",
+    "tags": [
+      "fun",
+      "star",
+      "poly"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "star",
+      "type": "poly",
+      "points": [
+        [
+          0.0,
+          -12.0
+        ],
+        [
+          2.94,
+          -4.05
+        ],
+        [
+          11.41,
+          -3.71
+        ],
+        [
+          4.76,
+          1.55
+        ],
+        [
+          7.05,
+          9.71
+        ],
+        [
+          0.0,
+          5.0
+        ],
+        [
+          -7.05,
+          9.71
+        ],
+        [
+          -4.76,
+          1.55
+        ],
+        [
+          -11.41,
+          -3.71
+        ],
+        [
+          -2.94,
+          -4.05
+        ]
+      ],
+      "fill": "#FFC400"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

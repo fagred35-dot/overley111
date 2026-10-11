@@ -1,0 +1,70 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "North Arrow",
+    "author": "Overley",
+    "description": "Стрелка сверху указывает точку прицеливания, не закрывая её.",
+    "tags": [
+      "arrow",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "tri",
+      "type": "poly",
+      "points": [
+        [
+          0,
+          -14
+        ],
+        [
+          5,
+          -5
+        ],
+        [
+          -5,
+          -5
+        ]
+      ],
+      "fill": "#00E5FF"
+    },
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 1.25,
+      "fill": "#00E5FF"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

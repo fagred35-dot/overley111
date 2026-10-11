@@ -1,0 +1,104 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Dot + Micro Ticks",
+    "author": "Overley",
+    "description": "Точка с четырьмя микрорисками для контроля спрея.",
+    "tags": [
+      "dot",
+      "ticks",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 1.5,
+      "fill": "#00E5FF"
+    },
+    {
+      "id": "t1",
+      "type": "rect",
+      "size": [
+        1,
+        3
+      ],
+      "pos": [
+        0,
+        -6
+      ],
+      "fill": "#00E5FF"
+    },
+    {
+      "id": "t2",
+      "type": "rect",
+      "size": [
+        1,
+        3
+      ],
+      "pos": [
+        0,
+        6
+      ],
+      "fill": "#00E5FF"
+    },
+    {
+      "id": "t3",
+      "type": "rect",
+      "size": [
+        3,
+        1
+      ],
+      "pos": [
+        -6,
+        0
+      ],
+      "fill": "#00E5FF"
+    },
+    {
+      "id": "t4",
+      "type": "rect",
+      "size": [
+        3,
+        1
+      ],
+      "pos": [
+        6,
+        0
+      ],
+      "fill": "#00E5FF"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

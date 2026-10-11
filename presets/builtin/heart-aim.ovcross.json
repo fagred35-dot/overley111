@@ -1,0 +1,58 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Heart Aim",
+    "author": "Overley",
+    "description": "Сердце вместо прицела. Для тех, кто любит цель всем сердцем.",
+    "tags": [
+      "fun",
+      "heart",
+      "path"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.5,
+      "enabled": true
+    },
+    "glow": {
+      "color": "#FF2E6355",
+      "radius": 5,
+      "enabled": true
+    },
+    "pixelSnap": false
+  },
+  "layers": [
+    {
+      "id": "heart",
+      "type": "path",
+      "d": "M 0 5 C 0 1 -3 -3 -6 -3 C -9 -3 -11 0 -11 2 C -11 7 -5 10 0 14 C 5 10 11 7 11 2 C 11 0 9 -3 6 -3 C 3 -3 0 1 0 5 Z",
+      "fill": "#FF2E63",
+      "opacity": 0.9
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

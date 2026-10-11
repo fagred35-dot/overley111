@@ -33,6 +33,18 @@
 | [`docs/COMPATIBILITY.md`](docs/COMPATIBILITY.md) | Режимы экрана, античиты, матрица тестирования игр, юридические границы, troubleshooting |
 | [`docs/M0-decision.md`](docs/M0-decision.md) | Шаблон решения по итогам research-спайка (заполняется на M0) |
 
+## Галерея (v0.0.1: 31 пресет)
+
+`presets/builtin/` — готовая встроенная галерея с манифестом (`manifest.json`: id, имя, категория,
+теги, файл, превью). Категории: classic · dot · ring · tactical · neon · fun · sniper.
+Превью каждого пресета: `assets/previews/gallery/`, общий контактный лист:
+[`assets/previews/gallery-contact-sheet.png`](assets/previews/gallery-contact-sheet.png).
+
+![Галерея Overley 0.0.1](assets/previews/gallery-contact-sheet.png)
+
+Все пресеты проходят `tools/validate_presets.py`; превью сгенерированы референсным рендерером
+(анимированные/реактивные показаны кадром t=0).
+
 ## Формат прицела и примеры
 
 Формат декларативный: `.ovcross` = один JSON-объект, проверяемый JSON Schema. Никакого кода и внешних ссылок — только геометрия, стили, анимации и ограниченные выражения.

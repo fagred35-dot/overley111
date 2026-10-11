@@ -1,0 +1,98 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Wide Cyan",
+    "author": "Overley",
+    "description": "Широкий голубой крест с большим зазором — для ближнего боя.",
+    "tags": [
+      "cross",
+      "wide",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "n",
+      "type": "rect",
+      "size": [
+        2.5,
+        11
+      ],
+      "pos": [
+        0,
+        -16
+      ],
+      "fill": "#00E5FF"
+    },
+    {
+      "id": "s",
+      "type": "rect",
+      "size": [
+        2.5,
+        11
+      ],
+      "pos": [
+        0,
+        16
+      ],
+      "fill": "#00E5FF"
+    },
+    {
+      "id": "w",
+      "type": "rect",
+      "size": [
+        11,
+        2.5
+      ],
+      "pos": [
+        -16,
+        0
+      ],
+      "fill": "#00E5FF"
+    },
+    {
+      "id": "e",
+      "type": "rect",
+      "size": [
+        11,
+        2.5
+      ],
+      "pos": [
+        16,
+        0
+      ],
+      "fill": "#00E5FF"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

@@ -96,10 +96,13 @@ def main(argv: list[str]) -> int:
     validator = load_schema()
 
     if len(argv) > 1:
-        targets = argv[1:]
+        targets = []
+        for pattern in argv[1:]:
+            hit = sorted(glob.glob(pattern, recursive=True))
+            targets.extend(hit or [pattern])
     else:
         targets = sorted(
-            glob.glob(os.path.join(ROOT, "presets", "**", "*.json"), recursive=True)
+            glob.glob(os.path.join(ROOT, "presets", "**", "*.ovcross.json"), recursive=True)
         )
         # Негативные тесты: файлы в schema/tests/invalid ОБЯЗАНЫ не проходить.
         invalid_dir = os.path.join(ROOT, "schema", "tests", "invalid")

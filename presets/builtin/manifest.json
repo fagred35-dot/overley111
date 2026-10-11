@@ -1,0 +1,376 @@
+{
+  "format": "overley.gallery",
+  "version": 1,
+  "count": 31,
+  "items": [
+    {
+      "id": "classic-green",
+      "name": "Classic Green",
+      "category": "classic",
+      "tags": [
+        "cross",
+        "static",
+        "cs"
+      ],
+      "file": "presets/builtin/classic-green.ovcross.json",
+      "preview": "assets/previews/gallery/classic-green.png"
+    },
+    {
+      "id": "classic-thin-white",
+      "name": "Thin White",
+      "category": "classic",
+      "tags": [
+        "cross",
+        "thin",
+        "static"
+      ],
+      "file": "presets/builtin/classic-thin-white.ovcross.json",
+      "preview": "assets/previews/gallery/classic-thin-white.png"
+    },
+    {
+      "id": "classic-wide-cyan",
+      "name": "Wide Cyan",
+      "category": "classic",
+      "tags": [
+        "cross",
+        "wide",
+        "static"
+      ],
+      "file": "presets/builtin/classic-wide-cyan.ovcross.json",
+      "preview": "assets/previews/gallery/classic-wide-cyan.png"
+    },
+    {
+      "id": "classic-t-shape",
+      "name": "T-Shape",
+      "category": "classic",
+      "tags": [
+        "cross",
+        "t",
+        "static"
+      ],
+      "file": "presets/builtin/classic-t-shape.ovcross.json",
+      "preview": "assets/previews/gallery/classic-t-shape.png"
+    },
+    {
+      "id": "classic-heavy-outline",
+      "name": "Heavy Outline",
+      "category": "classic",
+      "tags": [
+        "cross",
+        "outline",
+        "static"
+      ],
+      "file": "presets/builtin/classic-heavy-outline.ovcross.json",
+      "preview": "assets/previews/gallery/classic-heavy-outline.png"
+    },
+    {
+      "id": "classic-tight-gap",
+      "name": "Tight Gap",
+      "category": "classic",
+      "tags": [
+        "cross",
+        "tight",
+        "static"
+      ],
+      "file": "presets/builtin/classic-tight-gap.ovcross.json",
+      "preview": "assets/previews/gallery/classic-tight-gap.png"
+    },
+    {
+      "id": "dot-pure",
+      "name": "Pure Dot",
+      "category": "dot",
+      "tags": [
+        "dot",
+        "minimal",
+        "static"
+      ],
+      "file": "presets/builtin/dot-pure.ovcross.json",
+      "preview": "assets/previews/gallery/dot-pure.png"
+    },
+    {
+      "id": "dot-fortress",
+      "name": "Dot Fortress",
+      "category": "dot",
+      "tags": [
+        "dot",
+        "outline",
+        "static"
+      ],
+      "file": "presets/builtin/dot-fortress.ovcross.json",
+      "preview": "assets/previews/gallery/dot-fortress.png"
+    },
+    {
+      "id": "dot-in-ring",
+      "name": "Dot in Ring",
+      "category": "dot",
+      "tags": [
+        "dot",
+        "ring",
+        "static"
+      ],
+      "file": "presets/builtin/dot-in-ring.ovcross.json",
+      "preview": "assets/previews/gallery/dot-in-ring.png"
+    },
+    {
+      "id": "dot-ticks",
+      "name": "Dot + Micro Ticks",
+      "category": "dot",
+      "tags": [
+        "dot",
+        "ticks",
+        "static"
+      ],
+      "file": "presets/builtin/dot-ticks.ovcross.json",
+      "preview": "assets/previews/gallery/dot-ticks.png"
+    },
+    {
+      "id": "circle-dot-classic",
+      "name": "Circle-Dot",
+      "category": "ring",
+      "tags": [
+        "circle",
+        "dot",
+        "static"
+      ],
+      "file": "presets/builtin/circle-dot-classic.ovcross.json",
+      "preview": "assets/previews/gallery/circle-dot-classic.png"
+    },
+    {
+      "id": "ring-thick",
+      "name": "Thick Ring",
+      "category": "ring",
+      "tags": [
+        "ring",
+        "bold",
+        "static"
+      ],
+      "file": "presets/builtin/ring-thick.ovcross.json",
+      "preview": "assets/previews/gallery/ring-thick.png"
+    },
+    {
+      "id": "ring-dashed",
+      "name": "Dashed Ring",
+      "category": "ring",
+      "tags": [
+        "ring",
+        "dash",
+        "static"
+      ],
+      "file": "presets/builtin/ring-dashed.ovcross.json",
+      "preview": "assets/previews/gallery/ring-dashed.png"
+    },
+    {
+      "id": "double-ring",
+      "name": "Double Ring",
+      "category": "ring",
+      "tags": [
+        "ring",
+        "double",
+        "static"
+      ],
+      "file": "presets/builtin/double-ring.ovcross.json",
+      "preview": "assets/previews/gallery/double-ring.png"
+    },
+    {
+      "id": "chevron-amber",
+      "name": "Amber Chevron",
+      "category": "tactical",
+      "tags": [
+        "chevron",
+        "static"
+      ],
+      "file": "presets/builtin/chevron-amber.ovcross.json",
+      "preview": "assets/previews/gallery/chevron-amber.png"
+    },
+    {
+      "id": "chevron-double",
+      "name": "Double Chevron",
+      "category": "tactical",
+      "tags": [
+        "chevron",
+        "double",
+        "static"
+      ],
+      "file": "presets/builtin/chevron-double.ovcross.json",
+      "preview": "assets/previews/gallery/chevron-double.png"
+    },
+    {
+      "id": "corner-brackets",
+      "name": "Corner Brackets",
+      "category": "tactical",
+      "tags": [
+        "brackets",
+        "static"
+      ],
+      "file": "presets/builtin/corner-brackets.ovcross.json",
+      "preview": "assets/previews/gallery/corner-brackets.png"
+    },
+    {
+      "id": "mil-ticks",
+      "name": "Mil Ticks",
+      "category": "tactical",
+      "tags": [
+        "ticks",
+        "mil",
+        "static"
+      ],
+      "file": "presets/builtin/mil-ticks.ovcross.json",
+      "preview": "assets/previews/gallery/mil-ticks.png"
+    },
+    {
+      "id": "arrow-north",
+      "name": "North Arrow",
+      "category": "tactical",
+      "tags": [
+        "arrow",
+        "static"
+      ],
+      "file": "presets/builtin/arrow-north.ovcross.json",
+      "preview": "assets/previews/gallery/arrow-north.png"
+    },
+    {
+      "id": "neon-rotor",
+      "name": "Neon Rotor",
+      "category": "neon",
+      "tags": [
+        "neon",
+        "animated",
+        "ring"
+      ],
+      "file": "presets/builtin/neon-rotor.ovcross.json",
+      "preview": "assets/previews/gallery/neon-rotor.png"
+    },
+    {
+      "id": "pulse-core",
+      "name": "Pulse Core",
+      "category": "neon",
+      "tags": [
+        "neon",
+        "animated",
+        "pulse"
+      ],
+      "file": "presets/builtin/pulse-core.ovcross.json",
+      "preview": "assets/previews/gallery/pulse-core.png"
+    },
+    {
+      "id": "gradient-blades",
+      "name": "Gradient Blades",
+      "category": "neon",
+      "tags": [
+        "gradient",
+        "cross",
+        "static"
+      ],
+      "file": "presets/builtin/gradient-blades.ovcross.json",
+      "preview": "assets/previews/gallery/gradient-blades.png"
+    },
+    {
+      "id": "reactive-spread",
+      "name": "Reactive Spread",
+      "category": "neon",
+      "tags": [
+        "reactive",
+        "cross",
+        "animated"
+      ],
+      "file": "presets/builtin/reactive-spread.ovcross.json",
+      "preview": "assets/previews/gallery/reactive-spread.png"
+    },
+    {
+      "id": "ads-constrict",
+      "name": "ADS Constrict",
+      "category": "neon",
+      "tags": [
+        "reactive",
+        "ads",
+        "ring"
+      ],
+      "file": "presets/builtin/ads-constrict.ovcross.json",
+      "preview": "assets/previews/gallery/ads-constrict.png"
+    },
+    {
+      "id": "heart-aim",
+      "name": "Heart Aim",
+      "category": "fun",
+      "tags": [
+        "fun",
+        "heart",
+        "path"
+      ],
+      "file": "presets/builtin/heart-aim.ovcross.json",
+      "preview": "assets/previews/gallery/heart-aim.png"
+    },
+    {
+      "id": "star-five",
+      "name": "Five Star",
+      "category": "fun",
+      "tags": [
+        "fun",
+        "star",
+        "poly"
+      ],
+      "file": "presets/builtin/star-five.ovcross.json",
+      "preview": "assets/previews/gallery/star-five.png"
+    },
+    {
+      "id": "smiley",
+      "name": "Smiley",
+      "category": "fun",
+      "tags": [
+        "fun",
+        "smiley",
+        "arc"
+      ],
+      "file": "presets/builtin/smiley.ovcross.json",
+      "preview": "assets/previews/gallery/smiley.png"
+    },
+    {
+      "id": "x-marks",
+      "name": "X Marks the Spot",
+      "category": "fun",
+      "tags": [
+        "fun",
+        "x",
+        "rotated"
+      ],
+      "file": "presets/builtin/x-marks.ovcross.json",
+      "preview": "assets/previews/gallery/x-marks.png"
+    },
+    {
+      "id": "scope-long",
+      "name": "Scope Long",
+      "category": "sniper",
+      "tags": [
+        "sniper",
+        "scope",
+        "static"
+      ],
+      "file": "presets/builtin/scope-long.ovcross.json",
+      "preview": "assets/previews/gallery/scope-long.png"
+    },
+    {
+      "id": "scope-mil-dots",
+      "name": "Scope Mil-Dots",
+      "category": "sniper",
+      "tags": [
+        "sniper",
+        "mil",
+        "static"
+      ],
+      "file": "presets/builtin/scope-mil-dots.ovcross.json",
+      "preview": "assets/previews/gallery/scope-mil-dots.png"
+    },
+    {
+      "id": "sniper-ghost",
+      "name": "Sniper Ghost",
+      "category": "sniper",
+      "tags": [
+        "sniper",
+        "minimal",
+        "static"
+      ],
+      "file": "presets/builtin/sniper-ghost.ovcross.json",
+      "preview": "assets/previews/gallery/sniper-ghost.png"
+    }
+  ]
+}

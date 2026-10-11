@@ -1,0 +1,81 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Amber Chevron",
+    "author": "Overley",
+    "description": "Шеврон снизу и две боковые риски: цель не перекрыта.",
+    "tags": [
+      "chevron",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "chev",
+      "type": "path",
+      "d": "M -7 12 L 0 5 L 7 12 L 7 15 L 0 8 L -7 15 Z",
+      "fill": "#FFC400"
+    },
+    {
+      "id": "tl",
+      "type": "line",
+      "to": [
+        -9,
+        0
+      ],
+      "thickness": 2,
+      "cap": "round",
+      "fill": "#FFC400",
+      "from": [
+        -16,
+        0
+      ]
+    },
+    {
+      "id": "tr",
+      "type": "line",
+      "to": [
+        16,
+        0
+      ],
+      "thickness": 2,
+      "cap": "round",
+      "fill": "#FFC400",
+      "from": [
+        9,
+        0
+      ]
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

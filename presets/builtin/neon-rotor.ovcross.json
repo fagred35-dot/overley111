@@ -1,0 +1,79 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Neon Rotor",
+    "author": "Overley",
+    "description": "Медленно вращающееся пунктирное кольцо вокруг точки.",
+    "tags": [
+      "neon",
+      "animated",
+      "ring"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#05010DCC",
+      "width": 1,
+      "enabled": true
+    },
+    "glow": {
+      "color": "#9D4EDD66",
+      "radius": 6,
+      "enabled": true
+    },
+    "pixelSnap": false
+  },
+  "layers": [
+    {
+      "id": "rotor",
+      "type": "ring",
+      "r": 16,
+      "thickness": 2,
+      "fill": "#9D4EDD",
+      "dash": [
+        8,
+        10
+      ],
+      "animate": {
+        "duration": 5000,
+        "easing": "linear",
+        "loop": true,
+        "props": {
+          "rotate": {
+            "from": 0,
+            "to": 360
+          }
+        }
+      }
+    },
+    {
+      "id": "dot",
+      "type": "circle",
+      "r": 1.5,
+      "fill": "#FFFFFF"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

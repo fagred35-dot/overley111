@@ -1,0 +1,95 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Pulse Core",
+    "author": "Overley",
+    "description": "Дышащее гало вокруг светящегося ядра.",
+    "tags": [
+      "neon",
+      "animated",
+      "pulse"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "halo",
+      "type": "circle",
+      "r": 10,
+      "fill": "#00E5FF",
+      "opacity": 0.15,
+      "animate": {
+        "duration": 1200,
+        "easing": "easeInOutSine",
+        "loop": "pingpong",
+        "props": {
+          "scale": {
+            "keyframes": [
+              1,
+              1.35
+            ],
+            "times": [
+              0,
+              1
+            ]
+          },
+          "opacity": {
+            "keyframes": [
+              0.1,
+              0.3
+            ],
+            "times": [
+              0,
+              1
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": "core",
+      "type": "circle",
+      "r": 2,
+      "fill": "#00E5FF",
+      "shadow": {
+        "color": "#00E5FFAA",
+        "blur": 6,
+        "offset": [
+          0,
+          0
+        ],
+        "enabled": true
+      }
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}

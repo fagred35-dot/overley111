@@ -1,0 +1,118 @@
+{
+  "format": "overley.crosshair",
+  "version": 1,
+  "meta": {
+    "name": "Mil Ticks",
+    "author": "Overley",
+    "description": "Мил-шкала: риски сверху/по бокам и точки снизу для поправок.",
+    "tags": [
+      "ticks",
+      "mil",
+      "static"
+    ],
+    "license": "CC0-1.0",
+    "source": "builtin"
+  },
+  "canvas": {
+    "size": [
+      128,
+      128
+    ],
+    "dpiScale": "auto"
+  },
+  "style": {
+    "opacity": 1,
+    "outline": {
+      "color": "#000000CC",
+      "width": 1.25,
+      "enabled": true
+    },
+    "pixelSnap": true
+  },
+  "layers": [
+    {
+      "id": "v",
+      "type": "line",
+      "to": [
+        0,
+        -6
+      ],
+      "thickness": 1.5,
+      "fill": "#FFFFFF",
+      "from": [
+        0,
+        -18
+      ]
+    },
+    {
+      "id": "h",
+      "type": "line",
+      "to": [
+        -6,
+        0
+      ],
+      "thickness": 1.5,
+      "fill": "#FFFFFF",
+      "from": [
+        -18,
+        0
+      ]
+    },
+    {
+      "id": "h2",
+      "type": "line",
+      "to": [
+        18,
+        0
+      ],
+      "thickness": 1.5,
+      "fill": "#FFFFFF",
+      "from": [
+        6,
+        0
+      ]
+    },
+    {
+      "id": "m1",
+      "type": "circle",
+      "r": 0.9,
+      "pos": [
+        0,
+        6
+      ],
+      "fill": "#FFFFFF"
+    },
+    {
+      "id": "m2",
+      "type": "circle",
+      "r": 0.9,
+      "pos": [
+        0,
+        10
+      ],
+      "fill": "#FFFFFF"
+    },
+    {
+      "id": "m3",
+      "type": "circle",
+      "r": 0.9,
+      "pos": [
+        0,
+        14
+      ],
+      "fill": "#FFFFFF"
+    }
+  ],
+  "behavior": {
+    "mode": "center",
+    "offset": [
+      0,
+      0
+    ],
+    "hideWhen": {
+      "appNotFocused": true,
+      "altTab": true
+    },
+    "cursorHide": "overlay-only"
+  }
+}
