@@ -238,6 +238,7 @@ struct State {
     fade_start: i64,
     cursor_blank: bool,
     replace_lock: bool, // «полностью заменять мышь»: курсор скрыт, F9 заблокирован
+    z_tick: u32,        // счётчик для периодического re-topmost (контекстные меню и т.п.)
     last_x: i32,
     last_y: i32,
     samples: Vec<f64>, // задержки input→present в мкс (cursor-режим)
@@ -396,6 +397,14 @@ extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> LRE
         }
         WM_TIMER => {
             let st = state();
+            // Контекстные меню/попапы — тоже topmost-окна: кто позже встал, тот выше.
+            // Раз в ~250 мс переутверждаем Z-порядок, чтобы прицел оставался поверх них.
+            st.z_tick = st.z_tick.wrapping_add(1);
+            if st.z_tick % 250 == 0 {
+                unsafe {
+                    SetWindowPos(st.hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE)
+                };
+            }
             let mut force = false;
             if st.fade_dir != 0 {
                 let t = (now_us(st.qpc_freq) - st.fade_start) as f64 / FADE_US as f64;
@@ -851,6 +860,7 @@ pub fn run_with(cfg: Config) {
         fade_start: 0,
         cursor_blank: false,
         replace_lock: false,
+        z_tick: 0,
         last_x: i32::MIN,
         last_y: i32::MIN,
         samples: Vec::with_capacity(4096),

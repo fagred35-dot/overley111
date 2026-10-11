@@ -70,18 +70,27 @@
   /* ---------- загрузка любого DSL в параметрический редактор ---------- */
 function loadDslIntoEditor(d){
   const L=d.layers||[];
-  const rects=L.filter(l=>l.type==="rect"), rings=L.filter(l=>l.type==="ring"), circles=L.filter(l=>l.type==="circle");
-  if(!L.length){ toast("В пресете нет слоёв — нечего открывать"); return false; }
+  const rects=L.filter(l=>l.type==="rect"), rings=L.filter(l=>l.type==="ring"),
+        circles=L.filter(l=>l.type==="circle"), lines=L.filter(l=>l.type==="line");
+  const hasCross = rects.length>=4 || lines.length>=4;
+  if(!L.length || !(hasCross||rings.length||circles.length)){
+    toast("Пресет из слоёв poly/path/text/line<4 параметрически не открывается — примени его кнопкой «Применить к прицелу»");
+    return false;
+  }
   const col=(L.find(l=>l.fill)||{}).fill||"#00ff66";
   $("#eColor").value=col.slice(0,7);
   let th=2,len=8,gap=4,R=10,dot=1;
   if(rects.length){ const r0=rects[0]; th=Math.min(r0.size[0],r0.size[1]); len=Math.max(r0.size[0],r0.size[1]);
     const north=rects.find(r=>r.pos&&r.pos[1]<0)||rects[0];
     if(north.pos) gap=Math.abs(north.pos[1])-len/2; }
+  else if(lines.length>=4){ const v=lines.find(l=>l.from&&l.to&&l.from[0]===l.to[0])||lines[0];
+    th=v.thickness||th;
+    len=Math.abs(v.to[1]-v.from[1])||Math.abs(v.to[0]-v.from[0])||len;
+    gap=Math.abs(v.from[1]||v.from[0]||0); }
   if(rings.length){ th=rings[0].thickness||th; R=rings[0].r||R; }
   if(circles.length){ dot=circles[0].r||dot; }
   $("#eType").value = rings.length&&circles.length ? "ringdot" : rings.length ? "ring"
-                    : rects.length&&circles.length ? "crossdot" : rects.length ? "cross" : "dot";
+                    : hasCross&&circles.length ? "crossdot" : hasCross ? "cross" : "dot";
   $("#eTh").value=cl(th,1,5); $("#eLen").value=cl(len,3,18); $("#eGap").value=cl(gap,0,12);
   $("#eR").value=cl(R,3,24); $("#eDot").value=cl(dot,0.5,4);
   const ol=d.style&&d.style.outline;
@@ -308,7 +317,8 @@ const dl = (name,txt) => { const a=document.createElement("a"); a.href=URL.creat
 /* ---------- навигация ---------- */
 const TITLES = {gallery:"Галерея прицелов", editor:"Редактор пресета", ai:"ИИ-импорт", profiles:"Профили приложений", settings:"Настройки"};
 $$(".nav").forEach(n=>n.onclick=()=>{ $$(".nav").forEach(x=>x.classList.remove("on")); n.classList.add("on");
-  $$(".view").forEach(v=>v.classList.remove("on")); $("#v-"+n.dataset.v).classList.add("on"); $("#vTitle").textContent=TITLES[n.dataset.v]; });
+  $$(".view").forEach(v=>v.classList.remove("on")); $("#v-"+n.dataset.v).classList.add("on"); $("#vTitle").textContent=TITLES[n.dataset.v];
+  if(n.dataset.v==="editor") requestAnimationFrame(()=>editorSync()); });
 const go = v => $$(".nav").find(n=>n.dataset.v===v).click();
 
 /* ---------- галерея ---------- */
@@ -335,7 +345,7 @@ function openDrawer(p){ curSel=p.id; renderGrid();
   $("#dCopy").onclick=()=>copy(JSON.stringify(p.dsl,null,2),"JSON пресета в буфере");
   $("#dDl").onclick=()=>dl(p.id+".ovcross.json",JSON.stringify(p.dsl,null,2));
   $("#dAi").onclick=()=>{ $("#aiIn").value=""; go("ai"); toast("Шаг 1: скопируй промпт и попроси ИИ сделать вариант в стиле «"+p.name+"»"); };
-  $("#dToEd").onclick=()=>{ loadDslIntoEditor(JSON.parse($("#dJson").textContent)); $("#drawer").classList.remove("on"); go("editor"); };
+  $("#dToEd").onclick=()=>{ if(loadDslIntoEditor(JSON.parse($("#dJson").textContent))){ $("#drawer").classList.remove("on"); go("editor"); requestAnimationFrame(()=>editorSync()); } };
 }
 $("#dClose").onclick=()=>{ $("#drawer").classList.remove("on"); curSel=null; renderGrid(); };
 
@@ -443,7 +453,7 @@ $("#aiGo").onclick=()=>{
   const ctx=$("#aiCv").getContext("2d"); drawDsl(ctx,d,5,110,110);
   $("#aiDl").disabled=false; $("#aiToEd").disabled=false;
   $("#aiDl").onclick=()=>dl("ai-crosshair.ovcross.json",JSON.stringify(d,null,2));
-  $("#aiToEd").onclick=()=>{ if(loadDslIntoEditor(JSON.parse($("#aiJson").textContent))) go("editor"); };
+  $("#aiToEd").onclick=()=>{ if(loadDslIntoEditor(JSON.parse($("#aiJson").textContent))){ go("editor"); requestAnimationFrame(()=>editorSync()); } };
 };
 
 /* ---------- профили ---------- */
