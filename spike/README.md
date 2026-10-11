@@ -123,6 +123,30 @@ cargo build --release
 и командой `--restore-cursor`). Работает в любом режиме, не только в center.
 Если процесс убили (`taskkill /F`) и курсор пропал: `overlay-win.exe --restore-cursor`.
 
+### Канал управления UI→ядро (M1-1): правь прицел на лету
+
+Оверлей всегда слушает именованный пайп `\\.\pipe\overley-ctl` и принимает JSON-строки
+(по одной команде в строке):
+
+| Команда | Пример | Эффект |
+| --- | --- | --- |
+| `preset` + `dsl` | `{"cmd":"preset","dsl":{…DSL v1…}}` | горячая замена пресета открытого прицела (новый растр, новый DIB, без перезапуска) |
+| `preset` + `path` | `{"cmd":"preset","path":"..\\presets\\builtin\\neon-pulse-ring.ovcross.json"}` | то же, но пресет читается из файла |
+| `mode` | `{"cmd":"mode","mode":"cursor"}` | центр ↔ курсор |
+| `quit` | `{"cmd":"quit"}` | выход (тот же путь, что F8) |
+
+Демо-контроллер (вторая консоль, оверлей уже запущен):
+
+```powershell
+powershell -File tools\ctl-demo.ps1 -PresetFile ..\presets\builtin\neon-pulse-ring.ovcross.json
+powershell -File tools\ctl-demo.ps1 -Mode cursor
+powershell -File tools\ctl-demo.ps1 -Quit
+```
+
+Это ровно тот канал, которым в M1-2 воспользуется хаб: exe на Tauri 2 откроет окно с UI
+(тот же `ui-prototype/index.html` внутри WebView2) и будет слать сюда правки — изменил цвет
+или зазор в редакторе → открытый прицел меняется мгновенно, без перезапуска.
+
 ### Размер прицела
 
 Масштаб растра задаёт физический размер: по умолчанию `--scale 1` (холст 128 → окно 128 px).

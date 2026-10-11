@@ -164,8 +164,13 @@ pub struct LoadError(pub String);
 
 pub fn load(path: &str) -> Result<Preset, LoadError> {
     let text = std::fs::read_to_string(path).map_err(|e| LoadError(format!("{path}: {e}")))?;
+    parse_str(&text).map_err(|e| LoadError(format!("{path}: {}", e.0)))
+}
+
+/// Разбор DSL v1 из строки (использует и файл, и канал управления UI→ядро).
+pub fn parse_str(text: &str) -> Result<Preset, LoadError> {
     let raw: PresetRaw =
-        serde_json::from_str(&text).map_err(|e| LoadError(format!("{path}: не DSL v1: {e}")))?;
+        serde_json::from_str(text).map_err(|e| LoadError(format!("не DSL v1: {e}")))?;
     if raw.format != "overley.crosshair" {
         return Err(LoadError(format!("format = {:?}, ожидался \"overley.crosshair\"", raw.format)));
     }

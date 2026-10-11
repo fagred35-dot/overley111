@@ -59,6 +59,8 @@ M0 ──► M1 ──► M2 ──► M3 ──► M4 ──► M5 ──► M6
 - CI зелёный: `cargo test`, `clippy -D warnings`, `tools/validate_presets.py` (включая 8 негативных тестов), golden-рендер.
 
 ---
+- **M1-1 (готово в спайке):** канал управления UI→ядро `\\.\pipe\overley-ctl` (JSON `preset/mode/quit`), горячая замена пресета без перезапуска; демо `spike/tools/ctl-demo.ps1`.
+- **M1-2:** оболочка хаба: exe на Tauri 2 (WebView2, не Electron), внутрь — UI из `ui-prototype/`; правки в редакторе уходят в канал управления → открытый прицел меняется мгновенно (FR-G14, FR-G15).
 
 ## M2 · Курсор и позиционирование — 10 р.д.
 

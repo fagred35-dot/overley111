@@ -137,6 +137,14 @@ mod win {
         fn QueryPerformanceCounter(v: *mut i64) -> i32;
         fn QueryPerformanceFrequency(v: *mut i64) -> i32;
         fn GetCurrentProcessId() -> u32;
+        fn CreateNamedPipeW(
+            name: *const u16, open: u32, mode: u32, max_inst: u32, out_size: u32, in_size: u32,
+            timeout: u32, sec: *mut c_void,
+        ) -> isize;
+        fn ConnectNamedPipe(h: isize, ov: *mut c_void) -> i32;
+        fn DisconnectNamedPipe(h: isize) -> i32;
+        fn ReadFile(h: isize, buf: *mut u8, n: u32, read: *mut u32, ov: *mut c_void) -> i32;
+        fn CloseHandle(h: isize) -> i32;
     }
     #[link(name = "winmm")]
     extern "system" {
@@ -169,6 +177,7 @@ mod win {
         fn TranslateMessage(msg: *const Msg) -> i32;
         fn DispatchMessageW(msg: *const Msg) -> LRESULT;
         fn PostQuitMessage(code: i32);
+        fn PostMessageW(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> i32;
         fn RegisterHotKey(hwnd: HWND, id: i32, modifiers: u32, vk: u32) -> i32;
         fn UnregisterHotKey(hwnd: HWND, id: i32) -> i32;
         fn SetTimer(hwnd: HWND, id: usize, ms: u32, proc: Option<extern "system" fn(HWND, u32, usize, u32)>) -> usize;
@@ -196,6 +205,11 @@ mod win {
     const WM_DESTROY: u32 = 0x0002;
     const WM_TIMER: u32 = 0x0113;
     const WM_HOTKEY: u32 = 0x0312;
+    const WM_APP: u32 = 0x8000; // «пришли команды из канала управления»
+    const PIPE_ACCESS_INBOUND: u32 = 0x0000_0001;
+    const PIPE_TYPE_BYTE: u32 = 0x0000_0000;
+    const PIPE_READMODE_BYTE: u32 = 0x0000_0002;
+    const PIPE_WAIT: u32 = 0x0000_0000;
     const SW_HIDE: i32 = 0;
     const HWND_TOPMOST: HWND = -1;
     const SWP_NOMOVE: u32 = 0x0002;
@@ -238,6 +252,8 @@ mod win {
         frame: Frame,
         mem_dc: HDC,
         old_obj: isize,
+        dib: HBITMAP,
+        scale: f32,
         want_visible: bool,
         alpha: u8,      // текущая глобальная прозрачность (fade), 0..255
         fade_dir: i8,   // 1 = появление, -1 = уход, 0 = покой
@@ -249,6 +265,17 @@ mod win {
         qpc_freq: f64,
         fg_rect: Rect,
     }
+
+    /// Команды канала управления UI→ядро (M1-1): хаб/скрипт шлёт JSON-строки
+    /// в именованный пайп \\.\pipe\overley-ctl, пайп-тред кладёт их сюда,
+    /// главный поток применяет на WM_APP (только главный поток трогает GDI/окно).
+    #[derive(Debug)]
+    pub enum Cmd {
+        Preset(Preset),
+        Mode(Mode),
+        Quit,
+    }
+    static CTL: std::sync::Mutex<Vec<Cmd>> = std::sync::Mutex::new(Vec::new());
 
     // FIXME-spike: глобальный мутабельный указатель допустим только в спайке.
     // В M1 состояние живёт в структуре ядра и передаётся через GWLP_USERDATA или Arc.
@@ -345,6 +372,7 @@ mod win {
             UnregisterHotKey(st.hwnd, 4);
             SelectObject(st.mem_dc, st.old_obj);
             DeleteDC(st.mem_dc);
+            DeleteObject(st.dib);
             DestroyWindow(st.hwnd);
             timeEndPeriod(1);
         }
@@ -411,6 +439,25 @@ mod win {
                 }
                 0
             }
+            WM_APP => {
+                let cmds: Vec<Cmd> = {
+                    let mut q = CTL.lock().unwrap();
+                    std::mem::take(&mut *q)
+                };
+                for c in cmds {
+                    match c {
+                        Cmd::Preset(p) => apply_preset(st, p),
+                        Cmd::Mode(m) => {
+                            st.mode = m;
+                            println!("[ctl] режим: {:?}", m);
+                            let (x, y) = target_pos(st);
+                            present(st, x, y);
+                        }
+                        Cmd::Quit => do_quit(),
+                    }
+                }
+                0
+            }
             WM_DESTROY => {
                 // do_quit() сам вызывает DestroyWindow → WM_DESTROY; чтобы не уйти
                 // в рекурсию, здесь только просим завершить цикл сообщений.
@@ -422,6 +469,124 @@ mod win {
                 0
             }
             _ => unsafe { DefWindowProcW(hwnd, msg, wp, lp) },
+        }
+    }
+
+    // --------------------------------------------------------------- канал управления (M1-1)
+
+    /// Горячая замена пресета: новый растр → новый DIB → SelectObject, старый удаляем.
+    fn apply_preset(st: &mut State, p: Preset) {
+        let frame = crate::raster::render(&p, st.scale);
+        let bmi = BitmapInfo {
+            header: BitmapInfoHeader {
+                bi_size: std::mem::size_of::<BitmapInfoHeader>() as u32,
+                bi_width: frame.width as i32,
+                bi_height: -(frame.height as i32),
+                bi_planes: 1,
+                bi_bit_count: 32,
+                bi_compression: BI_RGB,
+                bi_size_image: 0,
+                bi_x_pels: 0,
+                bi_y_pels: 0,
+                bi_clr_used: 0,
+                bi_clr_important: 0,
+            },
+            colors: [0],
+        };
+        let mut bits: *mut u8 = std::ptr::null_mut();
+        let dib = unsafe { CreateDIBSection(st.mem_dc, &bmi, DIB_RGB_COLORS, &mut bits, 0, 0) };
+        if dib == 0 || bits.is_null() {
+            eprintln!("  ! [ctl] не удалось создать DIB под новый пресет");
+            return;
+        }
+        unsafe { std::ptr::copy_nonoverlapping(frame.pixels.as_ptr(), bits, frame.pixels.len()) };
+        let old = st.dib;
+        unsafe {
+            SelectObject(st.mem_dc, dib);
+            DeleteObject(old);
+        }
+        st.dib = dib;
+        st.frame = frame;
+        st.last_x = i32::MIN; // форсируем перерисовку новым размером
+        st.last_y = i32::MIN;
+        println!(
+            "[ctl] пресет применён на лету: слоёв {}, растр {}x{}",
+            p.layers.len(), st.frame.width, st.frame.height
+        );
+        let (x, y) = target_pos(st);
+        present(st, x, y);
+    }
+
+    /// Тред пайпа: ждёт клиентов \\.\pipe\overley-ctl, читает JSON-строки,
+    /// кладёт команды в CTL и будит главный поток через WM_APP.
+    fn ctl_thread(hwnd: HWND) {
+        let name = wide("\\.\pipe\overley-ctl");
+        loop {
+            let pipe = unsafe {
+                CreateNamedPipeW(
+                    name.as_ptr(), PIPE_ACCESS_INBOUND, PIPE_TYPE_BYTE | PIPE_READMODE_BYTE | PIPE_WAIT,
+                    1, 0, 65536, 0, std::ptr::null_mut(),
+                )
+            };
+            if pipe == -1 {
+                std::thread::sleep(std::time::Duration::from_millis(500));
+                continue;
+            }
+            if unsafe { ConnectNamedPipe(pipe, std::ptr::null_mut()) } == 0 {
+                // ERROR_PIPE_CONNECTED = клиент уже подключился — всё равно работаем
+            }
+            let mut acc = String::new();
+            let mut buf = [0u8; 4096];
+            loop {
+                let mut got = 0u32;
+                let ok = unsafe { ReadFile(pipe, buf.as_mut_ptr(), buf.len() as u32, &mut got, std::ptr::null_mut()) };
+                if ok == 0 || got == 0 {
+                    break;
+                }
+                acc.push_str(&String::from_utf8_lossy(&buf[..got as usize]));
+            }
+            unsafe {
+                DisconnectNamedPipe(pipe);
+                CloseHandle(pipe);
+            }
+            for line in acc.lines() {
+                let line = line.trim();
+                if line.is_empty() {
+                    continue;
+                }
+                let v: serde_json::Value = match serde_json::from_str(line) {
+                    Ok(v) => v,
+                    Err(e) => {
+                        eprintln!("  ! [ctl] не JSON: {e}");
+                        continue;
+                    }
+                };
+                match v.get("cmd").and_then(|c| c.as_str()).unwrap_or("") {
+                    "preset" => {
+                        let r = if let Some(dsl) = v.get("dsl") {
+                            crate::preset::parse_str(&dsl.to_string())
+                        } else if let Some(path) = v.get("path").and_then(|p| p.as_str()) {
+                            crate::preset::load(path)
+                        } else {
+                            Err(crate::preset::LoadError("нужно dsl или path".into()))
+                        };
+                        match r {
+                            Ok(p) => { CTL.lock().unwrap().push(Cmd::Preset(p)); }
+                            Err(e) => eprintln!("  ! [ctl] пресет не применён: {}", e.0),
+                        }
+                    }
+                    "mode" => match v.get("mode").and_then(|m| m.as_str()) {
+                        Some("cursor") => CTL.lock().unwrap().push(Cmd::Mode(Mode::Cursor)),
+                        Some("center") => CTL.lock().unwrap().push(Cmd::Mode(Mode::Center)),
+                        other => eprintln!("  ! [ctl] неизвестный mode: {other:?}"),
+                    },
+                    "quit" => CTL.lock().unwrap().push(Cmd::Quit),
+                    other => eprintln!("  ! [ctl] неизвестная команда: {other:?}"),
+                }
+            }
+            if !CTL.lock().unwrap().is_empty() {
+                unsafe { PostMessageW(hwnd, WM_APP, 0, 0) };
+            }
         }
     }
 
@@ -575,6 +740,7 @@ mod win {
         }
         unsafe { std::ptr::copy_nonoverlapping(frame.pixels.as_ptr(), bits, frame.pixels.len()) };
         let old_obj = unsafe { SelectObject(mem_dc, dib) };
+        let dib0 = dib;
 
         // окно
         let class = wide("OverleySpikeOverlay");
@@ -625,6 +791,8 @@ mod win {
             frame,
             mem_dc,
             old_obj,
+            dib: dib0,
+            scale: out_scale,
             want_visible: true,
             alpha: 0,
             fade_dir: 0,
@@ -680,6 +848,11 @@ mod win {
         unsafe { SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE) };
 
         println!("[spike] оверлей активен. Закрой игру/окно и проверь, что прицел остался поверх.");
+        println!("[spike] канал управления: \\.\\pipe\\overley-ctl (JSON-строки: preset/mode/quit)");
+        {
+            let h = hwnd;
+            std::thread::spawn(move || ctl_thread(h));
+        }
 
         let mut msg = Msg { hwnd: 0, message: 0, wParam: 0, lParam: 0, time: 0, pt: Point::default() };
         loop {
