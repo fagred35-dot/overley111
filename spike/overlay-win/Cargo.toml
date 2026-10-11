@@ -1,0 +1,14 @@
+[package]
+name = "overlay-win"
+description = "M0 research-спайк Overley: прозрачное click-through оверлей-окно поверх игры (Win32, без инжекта)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# Win32 намеренно НЕ через крейт `windows`: в спайке прямые FFI-объявления, чтобы сборка
+# не зависела от версии крейта и фич-флагов. На M1 переезжаем на `windows` (см. PLAN §7.2).
+[target.'cfg(windows)'.dependencies]
