@@ -67,7 +67,33 @@
   .btn:hover{border-color:#3a4a68}
   .btn.pri{background:var(--acc);border-color:var(--acc);color:#04110a;font-weight:600}
   .btn.gho{background:transparent}
-  /* ---------- редактор ---------- */
+  /* ---------- загрузка любого DSL в параметрический редактор ---------- */
+function loadDslIntoEditor(d){
+  const L=d.layers||[];
+  const rects=L.filter(l=>l.type==="rect"), rings=L.filter(l=>l.type==="ring"), circles=L.filter(l=>l.type==="circle");
+  if(!L.length){ toast("В пресете нет слоёв — нечего открывать"); return false; }
+  const col=(L.find(l=>l.fill)||{}).fill||"#00ff66";
+  $("#eColor").value=col.slice(0,7);
+  let th=2,len=8,gap=4,R=10,dot=1;
+  if(rects.length){ const r0=rects[0]; th=Math.min(r0.size[0],r0.size[1]); len=Math.max(r0.size[0],r0.size[1]);
+    const north=rects.find(r=>r.pos&&r.pos[1]<0)||rects[0];
+    if(north.pos) gap=Math.abs(north.pos[1])-len/2; }
+  if(rings.length){ th=rings[0].thickness||th; R=rings[0].r||R; }
+  if(circles.length){ dot=circles[0].r||dot; }
+  $("#eType").value = rings.length&&circles.length ? "ringdot" : rings.length ? "ring"
+                    : rects.length&&circles.length ? "crossdot" : rects.length ? "cross" : "dot";
+  $("#eTh").value=cl(th,1,5); $("#eLen").value=cl(len,3,18); $("#eGap").value=cl(gap,0,12);
+  $("#eR").value=cl(R,3,24); $("#eDot").value=cl(dot,0.5,4);
+  const ol=d.style&&d.style.outline;
+  $("#eOl").value = ol&&ol.enabled!==false ? cl(ol.width||1.25,0,3) : 0;
+  if(ol&&ol.color) $("#eOlC").value=ol.color.slice(0,7);
+  editorSync();
+  if(window.__OVERLEY_APPLY) window.__OVERLEY_APPLY(editorDsl());
+  toast("Пресет загружен в редактор");
+  return true;
+}
+
+/* ---------- редактор ---------- */
   .cols{display:grid;grid-template-columns:340px 1fr;gap:16px}
   .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:14px}
   .fld{margin-bottom:12px}
@@ -159,6 +185,7 @@
           <div class="row">
             <button class="btn pri" id="eCopy">Копировать JSON</button>
             <button class="btn" id="eDl">Скачать .ovcross.json</button>
+            <button class="btn" id="eSave">Сохранить в галерею</button>
           </div>
         </div>
         <div>
@@ -218,7 +245,7 @@
           <h2 class="sec">Поведение оверлея</h2>
           <div class="setrow"><div class="t"><b>Запускать с Windows</b><span>Планировщик задач, без прав администратора</span></div><div class="tg on" data-tg></div></div>
           <div class="setrow"><div class="t"><b>Старт при запуске игры</b><span>Наблюдение за процессом из списка профилей</span></div><div class="tg on" data-tg></div></div>
-          <div class="setrow"><div class="t"><b>Полностью заменять мышь</b><span>Скрыть системный курсор, оставить только прицел (spike: --cursor --cursor-blank)</span></div><div class="tg" data-tg></div></div>
+          <div class="setrow"><div class="t"><b>Полностью заменять мышь</b><span>Прицел лочится на мыши, системный курсор скрыт. Пока включено — F9 режим не переключает; выключи тумблер, чтобы вернуть курсор</span></div><div class="tg" data-tg id="tgReplace"></div></div>
           <div class="setrow"><div class="t"><b>Плавные анимации появления/ухода</b><span>fade, мс</span></div><input type="range" id="sFade" min="60" max="400" step="20" value="160" style="max-width:180px"><b id="vFade" style="width:52px;text-align:right">160</b></div>
           <div class="setrow"><div class="t"><b>Скрывать при alt-tab и потере фокуса</b><span>behavior.hideWhen</span></div><div class="tg on" data-tg></div></div>
           <div class="setrow"><div class="t"><b>Показывать p50/p95 в трее</b><span>Локальная метрика задержки input→present</span></div><div class="tg on" data-tg></div></div>
@@ -260,6 +287,7 @@
     <button class="btn pri" id="dCopy">Копировать JSON</button>
     <button class="btn" id="dDl">Скачать</button>
     <button class="btn gho" id="dAi">Похожий через ИИ</button>
+    <button class="btn gho" id="dToEd">В редактор</button>
   </div>
   <h2 class="sec" style="margin-top:6px">DSL пресета</h2>
   <pre class="code" id="dJson"></pre>
@@ -284,8 +312,12 @@ $$(".nav").forEach(n=>n.onclick=()=>{ $$(".nav").forEach(x=>x.classList.remove("
 const go = v => $$(".nav").find(n=>n.dataset.v===v).click();
 
 /* ---------- галерея ---------- */
-const CATS = {all:"все", classic:"классика", dot:"точки", ring:"кольца", tactical:"тактические", neon:"неон", fun:"фан", sniper:"снайперские"};
+const CATS = {all:"все", classic:"классика", dot:"точки", ring:"кольца", tactical:"тактические", neon:"неон", fun:"фан", sniper:"снайперские", my:"мои"};
 let curCat="all", curSel=null;
+const MY_KEY="overley.my.presets";
+try{ (JSON.parse(localStorage.getItem(MY_KEY)||"[]")).forEach(it=>D.gallery.push(it)); }catch(e){}
+const saveMy=()=>{ try{ localStorage.setItem(MY_KEY, JSON.stringify(D.gallery.filter(g=>g.category==="my"))); }catch(e){} };
+const cl=(v,a,b)=>Math.min(b,Math.max(a,v));
 $("#cCount").textContent = D.gallery.length;
 function renderCats(){ $("#cats").innerHTML=""; for(const k in CATS){ const b=document.createElement("button"); b.className="cat"+(k===curCat?" on":""); b.textContent=CATS[k]; b.onclick=()=>{curCat=k; renderCats(); renderGrid();}; $("#cats").appendChild(b);} }
 function renderGrid(){ const g=$("#grid"); g.innerHTML="";
@@ -303,6 +335,7 @@ function openDrawer(p){ curSel=p.id; renderGrid();
   $("#dCopy").onclick=()=>copy(JSON.stringify(p.dsl,null,2),"JSON пресета в буфере");
   $("#dDl").onclick=()=>dl(p.id+".ovcross.json",JSON.stringify(p.dsl,null,2));
   $("#dAi").onclick=()=>{ $("#aiIn").value=""; go("ai"); toast("Шаг 1: скопируй промпт и попроси ИИ сделать вариант в стиле «"+p.name+"»"); };
+  $("#dToEd").onclick=()=>{ loadDslIntoEditor(JSON.parse($("#dJson").textContent)); $("#drawer").classList.remove("on"); go("editor"); };
 }
 $("#dClose").onclick=()=>{ $("#drawer").classList.remove("on"); curSel=null; renderGrid(); };
 
@@ -356,6 +389,18 @@ function editorSync(){
   drawDsl(ctx,dsl,6*devicePixelRatio,W/2,H/2);
 }
 $$("#v-editor input,#v-editor select").forEach(el=>el.addEventListener("input",editorSync));
+$("#eSave").onclick=()=>{
+  const dsl=editorDsl();
+  const n=D.gallery.filter(g=>g.category==="my").length+1;
+  const name=prompt("Имя прицела в галерее:","Мой прицел "+n);
+  if(!name) return;
+  const c=document.createElement("canvas"); c.width=c.height=128;
+  drawDsl(c.getContext("2d"),dsl,3.2,64,64);
+  const item={ id:"my-"+Date.now().toString(36), name, category:"my", tags:["custom"],
+               png:c.toDataURL("image/png").split(",")[1], dsl };
+  D.gallery.push(item); saveMy(); $("#cCount").textContent=D.gallery.length;
+  renderCats(); renderGrid(); toast("Сохранено: галерея → раздел «мои»");
+};
 $("#eCopy").onclick=()=>copy(JSON.stringify(editorDsl(),null,2),"JSON пресета в буфере");
 $("#eDl").onclick=()=>dl("my-crosshair.ovcross.json",JSON.stringify(editorDsl(),null,2));
 
@@ -398,7 +443,7 @@ $("#aiGo").onclick=()=>{
   const ctx=$("#aiCv").getContext("2d"); drawDsl(ctx,d,5,110,110);
   $("#aiDl").disabled=false; $("#aiToEd").disabled=false;
   $("#aiDl").onclick=()=>dl("ai-crosshair.ovcross.json",JSON.stringify(d,null,2));
-  $("#aiToEd").onclick=()=>{ toast("В продукте (M4) пресет откроется в редакторе послойно; в прототипе — смотри JSON"); go("editor"); };
+  $("#aiToEd").onclick=()=>{ if(loadDslIntoEditor(JSON.parse($("#aiJson").textContent))) go("editor"); };
 };
 
 /* ---------- профили ---------- */
@@ -433,6 +478,14 @@ window.addEventListener("resize",editorSync);
   const apply = dsl => T.invoke("set_preset", { dsl }).then(()=>toast("Применено к открытому прицелу")).catch(e=>toast("ядро: "+e));
   let tm = 0;
   const applySoon = dsl => { clearTimeout(tm); tm = setTimeout(()=>apply(dsl), 120); };
+  window.__OVERLEY_APPLY = applySoon; // для loadDslIntoEditor из основного скрипта
+
+  // тумблер «Полностью заменять мышь»: вкл/выкл полной замены (курсор скрыт, F9 заблокирован)
+  const tgR = $("#tgReplace");
+  if (tgR) tgR.addEventListener("click", () => {
+    const on = tgR.classList.contains("on"); // общий обработчик уже переключил класс
+    T.invoke("set_replace", { on }).catch(e=>toast("ядро: "+e));
+  });
 
   // редактор: каждое движение ползунка → ядро (с дебаунсом)
   document.querySelectorAll("#v-editor input, #v-editor select").forEach(el=>

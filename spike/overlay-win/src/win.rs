@@ -237,6 +237,7 @@ struct State {
     fade_dir: i8,   // 1 = появление, -1 = уход, 0 = покой
     fade_start: i64,
     cursor_blank: bool,
+    replace_lock: bool, // «полностью заменять мышь»: курсор скрыт, F9 заблокирован
     last_x: i32,
     last_y: i32,
     samples: Vec<f64>, // задержки input→present в мкс (cursor-режим)
@@ -251,6 +252,7 @@ struct State {
 pub enum Cmd {
     Preset(Preset),
     Mode(Mode),
+    Replace(bool),
     Quit,
 }
 static CTL: std::sync::Mutex<Vec<Cmd>> = std::sync::Mutex::new(Vec::new());
@@ -376,6 +378,10 @@ extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> LRE
                 }
                 3 => {
                     // F9: переключить center/cursor на лету
+                    if st.replace_lock {
+                        println!("[spike] F9 проигнорирован: включена полная замена мыши (выключи тумблер в хабе)");
+                        return 0;
+                    }
                     st.mode = match st.mode {
                         Mode::Center => Mode::Cursor,
                         Mode::Cursor => Mode::Center,
@@ -429,6 +435,25 @@ extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> LRE
                     Cmd::Mode(m) => {
                         st.mode = m;
                         println!("[ctl] режим: {:?}", m);
+                        let (x, y) = target_pos(st);
+                        present(st, x, y);
+                    }
+                    Cmd::Replace(on) => {
+                        if on {
+                            st.mode = Mode::Cursor;
+                            if !st.cursor_blank {
+                                st.cursor_blank = blank_the_cursor();
+                            }
+                            st.replace_lock = true;
+                            println!("[ctl] полная замена мыши: ВКЛ (курсор скрыт, F9 заблокирован)");
+                        } else {
+                            st.replace_lock = false;
+                            if st.cursor_blank {
+                                restore_cursor();
+                                st.cursor_blank = false;
+                            }
+                            println!("[ctl] полная замена мыши: ВЫКЛ (системный курсор возвращён)");
+                        }
                         let (x, y) = target_pos(st);
                         present(st, x, y);
                     }
@@ -558,6 +583,10 @@ fn ctl_thread(hwnd: HWND) {
                     Some("cursor") => CTL.lock().unwrap().push(Cmd::Mode(Mode::Cursor)),
                     Some("center") => CTL.lock().unwrap().push(Cmd::Mode(Mode::Center)),
                     other => eprintln!("  ! [ctl] неизвестный mode: {other:?}"),
+                },
+                "replace" => match v.get("on").and_then(|b| b.as_bool()) {
+                    Some(on) => CTL.lock().unwrap().push(Cmd::Replace(on)),
+                    None => eprintln!("  ! [ctl] replace без on:true/false"),
                 },
                 "quit" => CTL.lock().unwrap().push(Cmd::Quit),
                 other => eprintln!("  ! [ctl] неизвестная команда: {other:?}"),
@@ -821,6 +850,7 @@ pub fn run_with(cfg: Config) {
         fade_dir: 0,
         fade_start: 0,
         cursor_blank: false,
+        replace_lock: false,
         last_x: i32::MIN,
         last_y: i32::MIN,
         samples: Vec::with_capacity(4096),

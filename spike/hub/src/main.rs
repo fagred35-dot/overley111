@@ -33,6 +33,11 @@ fn set_mode(mode: String) -> Result<(), String> {
 }
 
 #[tauri::command]
+fn set_replace(on: bool) {
+    overlay_win::win::send_cmd(overlay_win::win::Cmd::Replace(on));
+}
+
+#[tauri::command]
 fn quit_core() {
     overlay_win::win::send_cmd(overlay_win::win::Cmd::Quit);
 }
@@ -55,7 +60,7 @@ fn main() {
     });
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![set_preset, set_mode, quit_core, core_alive])
+        .invoke_handler(tauri::generate_handler![set_preset, set_mode, set_replace, quit_core, core_alive])
         .run(tauri::generate_context!())
         .expect("Overley hub: ошибка запуска Tauri");
 }
