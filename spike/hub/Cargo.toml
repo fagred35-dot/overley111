@@ -17,3 +17,6 @@ overlay-win = { path = "../overlay-win" }
 lto = true
 codegen-units = 1
 strip = true
+
+# hub — сам себе корень workspace (исключён из workspace спайка)
+[workspace]

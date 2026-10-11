@@ -1,6 +1,9 @@
 [workspace]
 resolver = "2"
 members = ["overlay-win"]
+# hub — отдельный крейт (Tauri): не член workspace, чтобы `cargo build --release`
+# в корне спайка не тянул tauri/tao/wry каждую сборку измерительного бинаря.
+exclude = ["hub"]
 
 [workspace.package]
 version = "0.0.1"
