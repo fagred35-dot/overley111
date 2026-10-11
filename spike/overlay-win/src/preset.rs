@@ -160,6 +160,7 @@ pub enum Mode {
     Cursor,
 }
 
+#[derive(Debug)]
 pub struct LoadError(pub String);
 
 pub fn load(path: &str) -> Result<Preset, LoadError> {

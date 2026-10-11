@@ -725,6 +725,7 @@ pub fn run_with(cfg: Config) {
     };
     let mode = cfg.force_mode.unwrap_or(preset.mode);
     let out_scale = cfg.scale;
+    let cursor_blank = cfg.cursor_blank;
     println!(
         "[spike] пресет {}: слоёв {}, холст {:?}, режим {:?}",
         preset_path.as_deref().unwrap_or("<встроенный>"), preset.layers.len(), preset.canvas, mode
