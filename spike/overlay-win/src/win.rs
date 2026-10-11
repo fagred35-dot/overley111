@@ -101,6 +101,20 @@ struct BitmapInfo {
     colors: [u32; 1],
 }
 #[repr(C)]
+struct RawInputDevice {
+    usage_page: u16,
+    usage: u16,
+    flags: u32,
+    target: HWND,
+}
+#[repr(C)]
+struct RawInputHeader {
+    dw_type: u32,
+    dw_size: u32,
+    h_device: isize,
+    w_param: isize,
+}
+#[repr(C)]
 #[derive(Clone, Copy)]
 struct BlendFunction {
     blend_op: u8,
@@ -156,6 +170,8 @@ extern "system" {
     fn DispatchMessageW(msg: *const Msg) -> LRESULT;
     fn PostQuitMessage(code: i32);
     fn PostMessageW(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> i32;
+    fn RegisterRawInputDevices(dev: *const RawInputDevice, n: u32, cb: u32) -> i32;
+    fn GetRawInputData(h: WPARAM, cmd: u32, data: *mut u8, size: *mut u32, hdr_cb: u32) -> u32;
     fn RegisterHotKey(hwnd: HWND, id: i32, modifiers: u32, vk: u32) -> i32;
     fn UnregisterHotKey(hwnd: HWND, id: i32) -> i32;
     fn SetTimer(hwnd: HWND, id: usize, ms: u32, proc: Option<extern "system" fn(HWND, u32, usize, u32)>) -> usize;
@@ -184,6 +200,10 @@ const WM_DESTROY: u32 = 0x0002;
 const WM_TIMER: u32 = 0x0113;
 const WM_HOTKEY: u32 = 0x0312;
 const WM_APP: u32 = 0x8000; // «пришли команды из канала управления»
+const WM_INPUT: u32 = 0x00FF; // raw input: пакет мыши приехал
+const RIM_TYPEMOUSE: u32 = 0;
+const RID_HEADER: u32 = 0x1000_0005;
+const RIDEV_INPUTSINK: u32 = 0x0000_0100; // получать даже без фокуса
 const PIPE_ACCESS_INBOUND: u32 = 0x0000_0001;
 const PIPE_TYPE_BYTE: u32 = 0x0000_0000;
 const PIPE_READMODE_BYTE: u32 = 0x0000_0002;
@@ -239,6 +259,7 @@ struct State {
     cursor_blank: bool,
     replace_lock: bool, // «полностью заменять мышь»: курсор скрыт, F9 заблокирован
     z_tick: u32,        // счётчик для периодического re-topmost (контекстные меню и т.п.)
+    raw_ok: bool,       // raw input зарегистрирован: cursor-режим событийный, без поллинга
     last_x: i32,
     last_y: i32,
     samples: Vec<f64>, // задержки input→present в мкс (cursor-режим)
@@ -395,6 +416,34 @@ extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> LRE
             }
             0
         }
+        WM_INPUT => {
+            // Событийное обновление прицела: пакет мыши = её репорт-рейт (125–1000 Гц),
+            // без поллинга → позиция свежее, а в простое CPU не тратится.
+            let st = state();
+            let mut hdr = RawInputHeader { dw_type: 0, dw_size: 0, h_device: 0, w_param: 0 };
+            let mut cb = std::mem::size_of::<RawInputHeader>() as u32;
+            let got = unsafe {
+                GetRawInputData(
+                    wp, RID_HEADER, &mut hdr as *mut RawInputHeader as *mut u8, &mut cb,
+                    std::mem::size_of::<RawInputHeader>() as u32,
+                )
+            };
+            // WM_INPUT обязательно отдаётся дальше в DefWindowProcW
+            let def = unsafe { DefWindowProcW(hwnd, msg, wp, lp) };
+            if got != u32::MAX && hdr.dw_type == RIM_TYPEMOUSE && st.mode == Mode::Cursor && st.alpha > 0 {
+                let t0 = now_us(st.qpc_freq);
+                let (x, y) = target_pos(st);
+                if x != st.last_x || y != st.last_y {
+                    present(st, x, y);
+                    let dt = now_us(st.qpc_freq) - t0;
+                    st.samples.push(dt as f64);
+                    if st.samples.len() >= 200_000 {
+                        st.samples.drain(0..100_000);
+                    }
+                }
+            }
+            def
+        }
         WM_TIMER => {
             let st = state();
             // Контекстные меню/попапы — тоже topmost-окна: кто позже встал, тот выше.
@@ -422,7 +471,8 @@ extern "system" fn wnd_proc(hwnd: HWND, msg: u32, wp: WPARAM, lp: LPARAM) -> LRE
             let alive = st.alpha > 0;
             let t0 = now_us(st.qpc_freq);
             let (x, y) = target_pos(st);
-            if alive && (force || x != st.last_x || y != st.last_y || st.mode == Mode::Cursor) {
+            let cursor_poll = st.mode == Mode::Cursor && !st.raw_ok; // fallback, если raw input не встал
+            if alive && (force || x != st.last_x || y != st.last_y || cursor_poll) {
                 present(st, x, y);
                 let dt = now_us(st.qpc_freq) - t0;
                 st.samples.push(dt as f64);
@@ -861,6 +911,7 @@ pub fn run_with(cfg: Config) {
         cursor_blank: false,
         replace_lock: false,
         z_tick: 0,
+        raw_ok: false,
         last_x: i32::MIN,
         last_y: i32::MIN,
         samples: Vec::with_capacity(4096),
@@ -904,7 +955,21 @@ pub fn run_with(cfg: Config) {
         "[spike] хоткеи: F7 показать/скрыть · F8/{spare} выход · F9 центр/курсор"
     );
 
-    unsafe { SetTimer(hwnd, 1, 1, None) };
+    // Raw input (мышь): событийная доставка пакетов вместо поллинга 1 кГц.
+    let rid = RawInputDevice { usage_page: 1, usage: 2, flags: RIDEV_INPUTSINK, target: hwnd };
+    let raw_ok = unsafe {
+        RegisterRawInputDevices(&rid, 1, std::mem::size_of::<RawInputDevice>() as u32)
+    } != 0;
+    if raw_ok {
+        state().raw_ok = true;
+        println!("[spike] raw input: событийное обновление прицела по пакетам мыши");
+    } else {
+        eprintln!("  ! raw input не зарегистрирован — cursor-режим остаётся на поллинге 250 Гц");
+    }
+
+    // 4 мс: достаточно для fade (160 мс ≈ 40 шагов) и center-геометрии;
+    // cursor-режим обновляется событийно через WM_INPUT.
+    unsafe { SetTimer(hwnd, 1, 4, None) };
     let (x, y) = target_pos(state());
     present(state(), x, y);
     start_fade(state(), true);
