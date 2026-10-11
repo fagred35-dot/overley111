@@ -205,6 +205,28 @@ PresentMon.exe -process_name <игра> -csv -time 60   # оверлей ВЫК�
 - p95 задержки cursor-режима ≤ 4 мс.
 - Подписан `docs/M0-decision.md`, старт M1 разрешён.
 
+## Хаб: exe → окно UI + прицел (M1-2, Tauri 2)
+
+`spike/hub` — отдельный крейт: двойной клик по `overley-hub.exe` открывает окно хаба
+(WebView2, **не Electron**) и одновременно поднимает прицел поверх окон/игр. Консоли нет.
+
+```powershell
+cd spike\hub
+cargo build --release          # впервые 5–10 минут: тянется tauri/tao/wry
+target\release\overley-hub.exe # или просто двойной клик по exe в проводнике
+```
+
+- UI внутри окна — тот же `ui-prototype/index.html` (+ `data.js`), но с мостом: ползунки
+  редактора, «Применить к прицелу» в галерее и в ИИ-импорте шлют `set_preset` в ядро —
+  открытый прицел меняется мгновенно (FR-G15).
+- Пресет по умолчанию: `preset.ovcross.json` рядом с exe, иначе встроенный классический крест.
+- Хоткеи ядра работают и из хаба: F7 скрыть/показать, F8 выход ядра (окно хаба остаётся),
+  F9 центр/курсор.
+- Требуется WebView2 Runtime: на Windows 11 и на Windows 10 с Edge он уже есть; если при
+  запуске exe увидишь ошибку про WebView2 — поставь Runtime с сайта Microsoft (evergreen).
+- Ошибка «нет цифровой подписи» у `tools\ctl-demo.ps1` — это политика PowerShell, обход:
+  `powershell -ExecutionPolicy Bypass -File tools\ctl-demo.ps1 …` (хабу скрипт не нужен).
+
 ## Плавность и микро-фризы: что гарантирует спайк, а что приедет в M1
 
 Что есть сейчас (CPU-путь `UpdateLayeredWindow`):
