@@ -20,11 +20,10 @@ struct Ctx {
     w: u32,
     h: u32,
     px: Vec<f32>, // premultiplied RGBA float
-    out: f32,
 }
 
 impl Ctx {
-    fn blend_mask(&mut self, layer: &Layer, m: &[f32], x0: i32, y0: i32, color: Color, opacity: f32) {
+    fn blend_mask(&mut self, _layer: &Layer, m: &[f32], x0: i32, y0: i32, color: Color, opacity: f32) {
         let (mw, mh) = (m[0] as i32, m[1] as i32);
         let (r, g, b, ca) = (color.0, color.1, color.2, color.3);
         for yy in 0..mh {
@@ -50,7 +49,6 @@ impl Ctx {
                 self.px[i + 3] = a + self.px[i + 3] * inv;
             }
         }
-        let _ = (layer,);
     }
 }
 
@@ -163,7 +161,7 @@ fn sdf(kind: &Kind, x: f32, y: f32) -> f32 {
 pub fn render(p: &Preset, out_scale: f32) -> Frame {
     let w = (p.canvas[0] * out_scale).round().max(1.0) as u32;
     let h = (p.canvas[1] * out_scale).round().max(1.0) as u32;
-    let mut ctx = Ctx { w, h, px: vec![0.0f32; (w * h * 4) as usize], out: out_scale };
+    let mut ctx = Ctx { w, h, px: vec![0.0f32; (w * h * 4) as usize] };
 
     // 1) единая обводка под слоями
     if p.outline_width > 0.0 && p.outline_color.3 > 0.0 {

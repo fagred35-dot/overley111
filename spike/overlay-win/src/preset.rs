@@ -38,19 +38,8 @@ impl Color {
     }
 }
 
-fn default_fill() -> String {
-    "#FFFFFFFF".to_string()
-}
-
-#[derive(Debug, Clone, Deserialize, Default)]
-#[serde(default, deny_unknown_fields = false)]
-pub struct Rect2 {
-    pub x: f32,
-    pub y: f32,
-}
-
 #[derive(Debug, Clone, Deserialize)]
-#[serde(default, deny_unknown_fields = false)]
+#[serde(default)]
 pub struct LayerRaw {
     pub id: Option<String>,
     #[serde(rename = "type")]
@@ -86,14 +75,14 @@ impl Default for LayerRaw {
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
-#[serde(default, deny_unknown_fields = false)]
+#[serde(default)]
 pub struct CanvasRaw {
     pub size: Option<[f32; 2]>,
     pub origin: Option<[f32; 2]>,
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
-#[serde(default, deny_unknown_fields = false)]
+#[serde(default)]
 pub struct OutlineRaw {
     pub color: Option<String>,
     pub width: Option<f32>,
@@ -101,21 +90,21 @@ pub struct OutlineRaw {
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
-#[serde(default, deny_unknown_fields = false)]
+#[serde(default)]
 pub struct StyleRaw {
     pub outline: Option<OutlineRaw>,
     pub opacity: Option<f32>,
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
-#[serde(default, deny_unknown_fields = false)]
+#[serde(default)]
 pub struct BehaviorRaw {
     pub mode: Option<String>,
     pub offset: Option<[f32; 2]>,
 }
 
 #[derive(Debug, Clone, Deserialize)]
-#[serde(default, deny_unknown_fields = false)]
+#[serde(default)]
 pub struct PresetRaw {
     pub format: String,
     pub version: i32,
